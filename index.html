@@ -1,0 +1,3650 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tasmik SKDK">
+<meta name="theme-color" content="#0f4c35">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Sistem Tasmik SK Datin Khadijah</title>
+<style>
+/* ── ROOT ── */
+:root{
+  --g1:#0f4c35;--g2:#1a6b4a;--g3:#2d9164;--g4:#52b788;--g5:#b7e4c7;--g6:#d8f3dc;--g7:#f0faf2;
+  --gold:#e9c46a;--goldd:#b5822a;--gold2:#fff3cd;
+  --red:#e63946;--red2:#fde8e8;
+  --blue:#2563eb;--blue2:#dbeafe;
+  --purple:#7c3aed;--purple2:#ede9fe;
+  --orange:#ea580c;--orange2:#ffedd5;
+  --gray0:#f9fafb;--gray1:#f3f4f6;--gray2:#e5e7eb;--gray3:#d1d5db;
+  --gray4:#9ca3af;--gray5:#6b7280;--gray6:#4b5563;--gray7:#374151;--gray8:#1f2937;
+  --white:#fff;
+  --r-sm:8px;--r-md:14px;--r-lg:20px;--r-xl:28px;
+  --sh:0 2px 12px rgba(0,0,0,.08);
+  --font:'Segoe UI',system-ui,-apple-system,sans-serif;
+  --sw:260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:var(--font);background:var(--gray0);}
+
+/* ── CONFIG SCREEN ── */
+#configScreen{position:fixed;inset:0;background:#0f4c35;display:flex;align-items:center;justify-content:center;z-index:999;padding:20px;}
+#configScreen.hidden{display:none;}
+.config-card{background:white;border-radius:24px;padding:32px 28px;width:min(400px,100%);box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.config-card .logo{text-align:center;margin-bottom:24px;}
+.config-card .logo .lic{font-size:44px;display:block;margin-bottom:8px;}
+.config-card .logo h1{font-size:20px;font-weight:800;color:var(--g1);}
+.config-card .logo p{font-size:12px;color:var(--gray5);margin-top:3px;}
+.url-input-wrap{margin-bottom:16px;}
+.url-input-wrap label{font-size:12px;font-weight:700;color:var(--gray6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;}
+.url-input-wrap input{width:100%;padding:12px 14px;border:1.5px solid var(--gray2);border-radius:var(--r-sm);font-size:13px;outline:none;}
+.url-input-wrap input:focus{border-color:var(--g3);}
+.url-input-wrap .hint{font-size:11px;color:var(--gray4);margin-top:4px;line-height:1.5;}
+.btn-connect{width:100%;padding:14px;background:var(--g1);color:white;border:none;border-radius:var(--r-md);font-size:15px;font-weight:700;cursor:pointer;margin-top:4px;}
+.btn-connect:hover{background:var(--g2);}
+.offline-btn{width:100%;padding:11px;background:var(--gray1);color:var(--gray6);border:1px solid var(--gray2);border-radius:var(--r-md);font-size:13px;cursor:pointer;margin-top:8px;}
+.config-steps{background:var(--g7);border-radius:var(--r-md);padding:14px;margin-top:14px;font-size:12px;color:var(--g1);line-height:1.8;}
+.config-steps b{font-weight:700;}
+
+/* ── LOGIN ── */
+#loginScreen{position:fixed;inset:0;background:linear-gradient(135deg,var(--g1),var(--g3));display:flex;align-items:center;justify-content:center;z-index:998;padding:20px;transition:opacity .3s;}
+#loginScreen.hidden{opacity:0;pointer-events:none;}
+.login-card{background:white;border-radius:var(--r-xl);padding:36px 28px;width:min(380px,100%);box-shadow:0 20px 60px rgba(0,0,0,.25);}
+.login-logo{text-align:center;margin-bottom:6px;}
+.login-logo .li{font-size:40px;display:block;}
+.login-logo h1{font-size:18px;font-weight:800;color:var(--g1);}
+.login-logo .school{font-size:13px;font-weight:700;color:var(--g2);margin-top:2px;}
+.login-logo .sub{font-size:11px;color:var(--gray4);margin-top:3px;}
+.lform{margin-top:20px;}
+.lform label{font-size:11px;font-weight:700;color:var(--gray6);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px;}
+.lform input{width:100%;padding:12px 14px;border:1.5px solid var(--gray2);border-radius:var(--r-sm);font-size:14px;margin-bottom:12px;outline:none;font-family:var(--font);}
+.lform input:focus{border-color:var(--g3);}
+.btn-login{width:100%;padding:14px;background:var(--g1);color:white;border:none;border-radius:var(--r-md);font-size:15px;font-weight:700;cursor:pointer;}
+.btn-login:active{background:var(--g2);}
+.login-info{text-align:center;font-size:11px;color:var(--gray4);margin-top:10px;}
+.api-status{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;margin-bottom:12px;padding:6px 12px;border-radius:20px;}
+.api-status.online{background:var(--g7);color:var(--g2);}
+.api-status.offline{background:var(--orange2);color:var(--orange);}
+.api-dot{width:7px;height:7px;border-radius:50%;}
+.dot-online{background:var(--g3);}
+.dot-offline{background:var(--orange);}
+
+/* ── APP ── */
+#app{display:flex;height:100vh;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+#sidebar{width:var(--sw);flex-shrink:0;background:var(--g1);color:white;display:flex;flex-direction:column;overflow:hidden;}
+.sb-top{padding:20px 14px 12px;border-bottom:1px solid rgba(255,255,255,.1);}
+.sb-brand{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sb-brand .bi{font-size:22px;flex-shrink:0;}
+.sb-brand .bt h2{font-size:14px;font-weight:800;}
+.sb-brand .bt p{font-size:10px;opacity:.65;margin-top:1px;}
+.sb-user{background:rgba(255,255,255,.12);border-radius:var(--r-sm);padding:10px;display:flex;align-items:center;gap:10px;}
+.sb-av{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.sb-uinfo .un{font-size:13px;font-weight:700;}
+.sb-uinfo .ur{font-size:10px;opacity:.7;}
+.sb-nav{flex:1;overflow-y:auto;padding:10px 8px;scrollbar-width:none;}
+.sb-nav::-webkit-scrollbar{display:none;}
+.sb-sec{font-size:9px;font-weight:700;opacity:.45;text-transform:uppercase;letter-spacing:1px;padding:10px 8px 4px;}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 10px;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;margin-bottom:2px;white-space:nowrap;}
+.ni:hover{background:rgba(255,255,255,.1);}
+.ni.active{background:rgba(255,255,255,.18);font-weight:700;}
+.ni .ico{font-size:17px;flex-shrink:0;width:22px;text-align:center;}
+.ni .lbl{font-size:13px;}
+.badge-r{background:var(--red);color:white;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px;margin-left:auto;}
+.sb-bot{padding:10px 8px;border-top:1px solid rgba(255,255,255,.1);}
+.sb-bot-btn{width:100%;background:rgba(255,255,255,.08);border:none;color:white;padding:9px;border-radius:var(--r-sm);cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.sb-bot-btn:hover{background:rgba(255,255,255,.15);}
+.sync-indicator{font-size:10px;opacity:.6;text-align:center;padding:4px;display:flex;align-items:center;justify-content:center;gap:4px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--g4);}
+.sync-dot.syncing{background:var(--gold);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── MAIN ── */
+#mw{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{background:white;border-bottom:1px solid var(--gray2);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:var(--sh);}
+.tb-l{display:flex;align-items:center;gap:10px;}
+.hbg{background:none;border:none;font-size:20px;cursor:pointer;color:var(--gray6);display:none;}
+.pt{font-size:17px;font-weight:700;color:var(--gray8);}
+.ps{font-size:12px;color:var(--gray4);margin-top:1px;}
+.tb-r{display:flex;gap:8px;}
+.tb-btn{background:var(--gray1);border:1px solid var(--gray2);border-radius:var(--r-sm);padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;color:var(--gray7);display:flex;align-items:center;gap:5px;}
+.tb-btn:hover{background:var(--gray2);}
+.tb-btn.p{background:var(--g1);color:white;border-color:var(--g1);}
+#mc{flex:1;overflow-y:auto;padding:18px;-webkit-overflow-scrolling:touch;}
+
+/* ── SCREENS ── */
+.screen{display:none;animation:fi .2s ease;}
+.screen.active{display:block;}
+@keyframes fi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+.sc{background:white;border:1px solid var(--gray2);border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh);}
+.sc.ag{border-left:4px solid var(--g3);}
+.sc.ab{border-left:4px solid var(--blue);}
+.sc.ar{border-left:4px solid var(--red);}
+.sc.ao{border-left:4px solid var(--gold);}
+.sc.ap{border-left:4px solid var(--purple);}
+.sc .si{font-size:24px;margin-bottom:6px;}
+.sc .sv{font-size:28px;font-weight:800;color:var(--g1);line-height:1;}
+.sc .sl{font-size:11px;color:var(--gray5);margin-top:3px;}
+
+/* ── CARD ── */
+.card{background:white;border:1px solid var(--gray2);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh);margin-bottom:16px;}
+.ch{padding:13px 16px;border-bottom:1px solid var(--gray2);display:flex;align-items:center;justify-content:space-between;background:var(--gray0);}
+.ch h3{font-size:14px;font-weight:700;color:var(--gray8);}
+.cb{padding:16px;}
+.cb.np{padding:0;}
+
+/* ── TABLE ── */
+.dt{width:100%;border-collapse:collapse;font-size:13px;}
+.dt th{background:var(--gray0);padding:9px 13px;text-align:left;font-size:11px;font-weight:700;color:var(--gray5);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--gray2);white-space:nowrap;}
+.dt td{padding:10px 13px;border-bottom:1px solid var(--gray2);color:var(--gray7);vertical-align:middle;}
+.dt tr:last-child td{border-bottom:none;}
+.dt tr:hover td{background:var(--gray0);}
+.nc{font-weight:600;color:var(--gray8);}
+
+/* ── BADGE ── */
+.bdg{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.bg{background:var(--g6);color:var(--g1);}
+.bb{background:var(--gold2);color:var(--goldd);}
+.br{background:var(--red2);color:#c0392b;}
+.bbl{background:var(--blue2);color:var(--blue);}
+.bpu{background:var(--purple2);color:var(--purple);}
+.bgr{background:var(--gray1);color:var(--gray5);}
+.bor{background:var(--orange2);color:var(--orange);}
+
+/* ── FORMS ── */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.fl{font-size:11px;font-weight:700;color:var(--gray6);text-transform:uppercase;letter-spacing:.5px;}
+.fc{padding:10px 12px;border:1.5px solid var(--gray2);border-radius:var(--r-sm);font-size:14px;font-family:var(--font);outline:none;width:100%;transition:border-color .15s;background:white;}
+.fc:focus{border-color:var(--g3);}
+.fhint{font-size:11px;color:var(--gray4);}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+
+/* ── BUTTONS ── */
+.btn{padding:10px 18px;border-radius:var(--r-md);font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+.btn-sm{padding:7px 12px;font-size:12px;border-radius:var(--r-sm);}
+.btn-p{background:var(--g1);color:white;}
+.btn-p:hover{background:var(--g2);}
+.btn-p:active{transform:scale(.98);}
+.btn-s{background:var(--gray1);color:var(--gray7);border:1px solid var(--gray2);}
+.btn-s:hover{background:var(--gray2);}
+.btn-d{background:var(--red);color:white;}
+.btn-g{background:var(--gold);color:var(--goldd);}
+.btn-b{background:var(--blue);color:white;}
+
+/* ── PROGRESS ── */
+.pw{background:var(--gray2);border-radius:10px;height:8px;overflow:hidden;}
+.pf{background:linear-gradient(90deg,var(--g4),var(--g1));height:100%;border-radius:10px;transition:width .4s;}
+.pl{font-size:11px;color:var(--gray5);margin-top:4px;}
+
+/* ── CHART ── */
+.mbc{display:flex;align-items:flex-end;gap:5px;height:120px;}
+.mb{flex:1;border-radius:3px 3px 0 0;min-width:14px;position:relative;cursor:default;}
+.mb::after{content:attr(data-t);position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);background:var(--gray8);color:white;padding:2px 7px;border-radius:5px;font-size:10px;white-space:nowrap;opacity:0;pointer-events:none;z-index:10;}
+.mb:hover::after{opacity:1;}
+.bls{display:flex;gap:5px;padding:4px 0 0;}
+.bl{flex:1;text-align:center;font-size:9px;color:var(--gray4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+/* ── ALERT ITEMS ── */
+.alert-item{background:var(--red2);border:1px solid #fecaca;border-radius:var(--r-md);padding:11px 13px;display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.alert-item.warn{background:var(--orange2);border-color:#fdba74;}
+.ai-ico{font-size:18px;flex-shrink:0;}
+.ai-txt{flex:1;}
+.ai-nm{font-size:13px;font-weight:700;color:var(--gray8);}
+.ai-dt{font-size:12px;color:var(--gray5);margin-top:2px;}
+
+/* ── JENIS PICKER ── */
+.jp{display:flex;gap:8px;flex-wrap:wrap;}
+.jpb{border:2px solid var(--gray2);border-radius:var(--r-sm);padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;background:white;color:var(--gray6);transition:all .15s;display:flex;align-items:center;gap:6px;}
+.jpb.ab{border-color:var(--g2);background:var(--g7);color:var(--g1);}
+.jpb.al{border-color:#e74c3c;background:#fef2f2;color:#c0392b;}
+.jpb.aq{border-color:var(--purple);background:var(--purple2);color:var(--purple);}
+
+/* ── QUALITY ── */
+.qgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.qb{border:1.5px solid var(--gray2);border-radius:var(--r-sm);padding:10px 8px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;background:white;transition:all .15s;}
+.qb.qc.active{border-color:var(--g3);background:var(--g7);color:var(--g1);}
+.qb.qk.active{border-color:#d97706;background:#fffbeb;color:#92400e;}
+.qb.qu.active{border-color:var(--orange);background:var(--orange2);color:var(--orange);}
+.qb.ql.active{border-color:var(--red);background:var(--red2);color:#c0392b;}
+
+/* ── CHECKBOX ── */
+.cr{display:flex;align-items:center;gap:10px;padding:7px 0;cursor:pointer;}
+.cb2{width:20px;height:20px;border:2px solid var(--gray3);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .15s;}
+.cb2.on{background:var(--g2);border-color:var(--g2);color:white;}
+.cl{font-size:13px;color:var(--gray6);}
+
+/* ── INFO / WARN BOXES ── */
+.info-b{background:var(--g7);border:1px solid var(--g5);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--g1);margin-top:8px;}
+.warn-b{background:var(--orange2);border:1px solid #fdba74;border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--orange);margin-top:6px;display:none;}
+.juz-b{background:var(--purple2);border:1px solid #c4b5fd;border-radius:var(--r-sm);padding:8px 12px;font-size:12px;font-weight:700;color:var(--purple);margin-top:6px;display:none;}
+.jml-h{font-size:12px;color:var(--g2);font-weight:700;margin-top:4px;}
+
+/* ── KHATAM HERO ── */
+.kt-hero{background:linear-gradient(135deg,#b5822a,var(--gold));color:#4a2c00;border-radius:var(--r-lg);padding:20px;margin-bottom:14px;text-align:center;}
+.kt-hero .trophy{font-size:40px;margin-bottom:6px;}
+.kt-hero h2{font-size:18px;font-weight:800;}
+.kt-hero p{font-size:12px;opacity:.8;margin-top:3px;}
+.kt-num{font-size:46px;font-weight:800;color:#4a2c00;line-height:1;}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;padding:16px;}
+.mo.open{opacity:1;pointer-events:all;}
+.mb2{background:white;border-radius:var(--r-xl);width:min(540px,100%);max-height:90vh;overflow-y:auto;transform:scale(.96);transition:transform .2s;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.mo.open .mb2{transform:scale(1);}
+.mh{padding:18px 22px;border-bottom:1px solid var(--gray2);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white;z-index:1;}
+.mh h2{font-size:16px;font-weight:800;color:var(--gray8);}
+.mc2{padding:18px 22px;}
+.mf{padding:13px 22px;border-top:1px solid var(--gray2);display:flex;justify-content:flex-end;gap:10px;}
+.mcl{background:var(--gray1);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:15px;color:var(--gray5);}
+
+/* ── TOAST ── */
+#tc{position:fixed;top:16px;right:16px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.ti{background:var(--gray8);color:white;padding:11px 16px;border-radius:var(--r-md);font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.2);transform:translateX(120%);transition:transform .3s;max-width:300px;}
+.ti.show{transform:translateX(0);}
+.ti.ok{background:var(--g2);}
+.ti.err{background:var(--red);}
+.ti.warn{background:var(--orange);}
+
+/* ── SYNC BANNER ── */
+#syncBanner{background:var(--orange2);border-bottom:1px solid #fdba74;padding:8px 16px;font-size:12px;color:var(--orange);display:none;align-items:center;gap:8px;flex-shrink:0;}
+#syncBanner.show{display:flex;}
+
+/* ── OVERLAY ── */
+#ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199;display:none;}
+#ov.show{display:block;}
+
+/* ── YEAR BANNER ── */
+.yr-card{background:linear-gradient(135deg,var(--g1),var(--g3));color:white;border-radius:var(--r-lg);padding:20px;margin-bottom:14px;}
+.yr-card h3{font-size:15px;font-weight:800;margin-bottom:4px;}
+.yr-card p{font-size:12px;opacity:.8;}
+
+/* ── EXPORT ── */
+.eo{border:1.5px solid var(--gray2);border-radius:var(--r-md);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .15s;margin-bottom:10px;}
+.eo:hover{border-color:var(--g3);background:var(--g7);}
+.eo .eoi{font-size:26px;flex-shrink:0;}
+.eo .eot h4{font-size:14px;font-weight:700;color:var(--gray8);}
+.eo .eot p{font-size:12px;color:var(--gray5);margin-top:2px;}
+
+/* ── FILTER CHIPS ── */
+.fc-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;}
+.fchip{padding:6px 14px;border:1.5px solid var(--gray2);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;background:white;color:var(--gray6);transition:all .15s;}
+.fchip.active{background:var(--g1);color:white;border-color:var(--g1);}
+
+/* ── EMPTY ── */
+.es{text-align:center;padding:36px 20px;color:var(--gray4);}
+.es .ei{font-size:40px;margin-bottom:8px;}
+.es p{font-size:13px;}
+
+/* ── MURID PILIH LIST ── */
+.mk-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--gray2);cursor:pointer;transition:background .1s;}
+.mk-item:last-child{border-bottom:none;}
+.mk-item:hover,.mk-item:active{background:var(--g7);}
+.mk-item.selected{background:var(--g7);border-left:3px solid var(--g3);}
+.mk-av{width:34px;height:34px;border-radius:50%;background:var(--g6);color:var(--g1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.mk-info{flex:1;min-width:0;}
+.mk-nama{font-size:13px;font-weight:600;color:var(--gray8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mk-sub{font-size:11px;color:var(--gray5);margin-top:2px;}
+.mk-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0;}
+
+@media(max-width:768px){
+  #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .25s;}
+  #sidebar.open{transform:translateX(0);}
+  .hbg{display:block;}
+  #mc{padding:12px;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .fgrid{grid-template-columns:1fr;}
+}
+@media(max-width:480px){
+  .mb2{border-radius:var(--r-lg) var(--r-lg) 0 0;align-self:flex-end;width:100%;max-height:95vh;}
+  .mo{align-items:flex-end;padding:0;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:3px;}
+.dvd{height:1px;background:var(--gray2);margin:12px 0;}
+select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath fill='%236c757d' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+</style>
+</head>
+<body>
+
+<!-- OVERLAY -->
+<div id="ov" onclick="closeSB()"></div>
+<!-- TOAST -->
+<div id="tc"></div>
+
+<!-- ════ CONFIG SCREEN ════ -->
+<div id="configScreen">
+  <div class="config-card">
+    <div class="logo">
+      <span class="lic">📖</span>
+      <h1>Sistem Tasmik</h1>
+      <p class="school" style="color:#1a6b4a;font-weight:800">SK DATIN KHADIJAH</p>
+      <p style="font-size:11px;color:#6b7280;margin-top:3px">Sambung ke Google Sheets backend</p>
+    </div>
+    <div class="url-input-wrap">
+      <label>URL Google Apps Script Web App</label>
+      <input id="cfgUrl" placeholder="https://script.google.com/macros/s/..." type="url">
+      <div class="hint">
+        Dapatkan URL ini selepas Deploy Apps Script.<br>
+        <b>Extensions → Apps Script → Deploy → New Deployment</b>
+      </div>
+    </div>
+    <button class="btn-connect" onclick="sambungBackend()">🔗 Sambung Backend</button>
+    <button class="offline-btn" onclick="testSambungan()" style="background:#e6f1fb;color:#0c447c;border-color:#b5d4f4;margin-top:6px">🧪 Test Sambungan Sahaja</button>
+    <button class="offline-btn" onclick="gunaOffline()">📱 Guna Mod Offline (tanpa Google Sheets)</button>
+    <div id="testResult" style="display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:12px;line-height:1.5"></div>
+    <div class="config-steps">
+      <b>Cara setup:</b><br>
+      1. Buka Google Sheets baharu<br>
+      2. Extensions → Apps Script<br>
+      3. Tampal kod dari fail .gs<br>
+      4. Jalankan: <b>setupSheets</b><br>
+      5. Deploy → Web App → Copy URL<br>
+      6. Tampal URL di atas → Sambung
+    </div>
+  </div>
+</div>
+
+<!-- ════ LOGIN ════ -->
+<style>
+/* ── LOGIN GURU BARU ── */
+.guru-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;max-height:360px;overflow-y:auto;}
+.guru-btn{background:var(--white);border:1.5px solid var(--gray2);border-radius:var(--r-md);padding:12px 10px;text-align:center;cursor:pointer;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.guru-btn:hover,.guru-btn:active{border-color:var(--g3);background:var(--g7);transform:scale(.98);}
+.guru-btn .gav{width:38px;height:38px;border-radius:50%;background:var(--g6);color:var(--g1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+.guru-btn .gnm{font-size:11px;font-weight:600;color:var(--gray7);line-height:1.3;}
+.guru-btn .gkl{font-size:10px;color:var(--gray4);margin-top:1px;}
+.tab-switch{display:flex;background:var(--gray1);border-radius:var(--r-md);padding:3px;margin-bottom:14px;}
+.tab-sw-btn{flex:1;padding:8px;border:none;background:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;color:var(--gray5);transition:all .15s;}
+.tab-sw-btn.active{background:white;color:var(--g1);box-shadow:0 1px 4px rgba(0,0,0,.1);}
+.kelas-badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;margin-top:2px;}
+.kelas-1{background:#e3f2fd;color:#0d47a1;}
+.kelas-2{background:#e8f5e9;color:#1b5e20;}
+.kelas-3{background:#fff3e0;color:#e65100;}
+.kelas-4{background:#fce4ec;color:#880e4f;}
+.kelas-5{background:#f3e5f5;color:#4a148c;}
+.kelas-6{background:#e0f2f1;color:#004d40;}
+</style>
+
+<div id="loginScreen">
+  <div class="login-card" style="max-width:440px;width:min(440px,96vw)">
+    <div class="login-logo">
+      <span class="li">📖</span>
+      <h1>Sistem Tasmik</h1>
+      <div class="school">SK DATIN KHADIJAH</div>
+      <div class="sub">Tekan nama anda untuk masuk</div>
+    </div>
+
+    <div class="api-status online" id="apiStatus" style="margin-bottom:10px">
+      <div class="api-dot dot-online" id="apiDot"></div>
+      <span id="apiStatusText">Tersambung ke Google Sheets</span>
+    </div>
+
+    <!-- Tab: Guru / Admin -->
+    <div class="tab-switch">
+      <button class="tab-sw-btn active" id="tabGuru" onclick="switchLoginTab('guru')">👩‍🏫 Guru</button>
+      <button class="tab-sw-btn" id="tabAdmin" onclick="switchLoginTab('admin')">🔐 Admin</button>
+    </div>
+
+    <!-- Panel Guru: Pilih nama -->
+    <div id="panelGuru">
+      <div style="font-size:11px;color:var(--gray4);margin-bottom:8px;text-align:center">Pilih nama anda 👇</div>
+      <div class="guru-grid" id="guruGrid">
+        <!-- Dijana secara automatik -->
+      </div>
+      <div style="font-size:11px;color:var(--gray4);text-align:center">Sekiranya nama tiada, hubungi admin.</div>
+    </div>
+
+    <!-- Panel Admin: Form biasa -->
+    <div id="panelAdmin" style="display:none">
+      <div class="lform">
+        <label>Email Admin</label>
+        <input id="lUser" placeholder="g-29307946@moe-dl.edu.my" autocomplete="username">
+        <label>Kata Laluan</label>
+        <input id="lPass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="btn-login" onclick="doLogin()">🔐 Log Masuk Admin</button>
+      </div>
+      <div class="login-info" style="margin-top:8px">Admin: g-29307946@moe-dl.edu.my<br>Kata laluan: admin@SKDK2025</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ APP ════ -->
+<div id="app" style="display:none">
+
+  <div id="sidebar">
+    <div class="sb-top">
+      <div class="sb-brand">
+        <div class="bi">📖</div>
+        <div class="bt"><h2>Tasmik SKDK</h2><p>SK Datin Khadijah</p></div>
+      </div>
+      <div class="sb-user">
+        <div class="sb-av" id="sbAv">—</div>
+        <div class="sb-uinfo"><div class="un" id="sbNama">—</div><div class="ur" id="sbRole">—</div></div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-sec">Utama</div>
+      <div class="ni active" onclick="navTo('dash',this)"><span class="ico">🏠</span><span class="lbl">Dashboard</span></div>
+      <div class="ni" onclick="navTo('rekod',this)"><span class="ico">📋</span><span class="lbl">Rekod Bacaan</span></div>
+      <div class="ni" onclick="navTo('khatam',this)"><span class="ico">🏆</span><span class="lbl">Rekod Khatam</span></div>
+      <div class="sb-sec">Analisis</div>
+      <div class="ni" onclick="navTo('laporan',this)"><span class="ico">📊</span><span class="lbl">Laporan</span></div>
+      <div class="ni" onclick="navTo('alert',this)"><span class="ico">🔔</span><span class="lbl">Amaran <span class="badge-r" id="alertBadge" style="display:none">0</span></span></div>
+      <div class="sb-sec admin-only">Pentadbiran</div>
+      <div class="ni admin-only" onclick="navTo('murid',this)"><span class="ico">👥</span><span class="lbl">Murid</span></div>
+      <div class="ni admin-only" onclick="navTo('guru',this)"><span class="ico">👩‍🏫</span><span class="lbl">Guru</span></div>
+      <div class="ni admin-only" onclick="navTo('tahun',this)"><span class="ico">📅</span><span class="lbl">Tukar Tahun</span></div>
+      <div class="ni" onclick="navTo('export',this)"><span class="ico">📤</span><span class="lbl">Import / Export</span></div>
+      <div class="ni admin-only" onclick="navTo('tetapan',this)"><span class="ico">⚙️</span><span class="lbl">Tetapan</span></div>
+    </nav>
+    <div class="sb-bot">
+      <button class="sb-bot-btn" onclick="syncData()">🔄 <span>Sync Data</span></button>
+      <button class="sb-bot-btn" id="btnInstallPWA" style="display:none;background:rgba(255,215,0,.15);color:#ffd700" onclick="installPWA()">📲 <span>Install Apps</span></button>
+      <button class="sb-bot-btn" id="btnTukarKelas" style="display:none" onclick="tukarKelasGuru()">🏫 <span>Tukar Kelas</span></button>
+      <button class="sb-bot-btn" onclick="tukarKataLaluan()">🔑 <span>Tukar Kata Laluan</span></button>
+      <button class="sb-bot-btn" onclick="doLogout()" style="background:rgba(255,80,80,.15)">🚪 <span>Log Keluar</span></button>
+      <div class="sync-indicator"><div class="sync-dot" id="syncDot"></div><span id="syncText">Tersambung</span></div>
+    </div>
+  </div>
+
+  <div id="mw">
+    <div id="syncBanner">⚠️ Mod Offline — data disimpan tempatan sahaja. Tekan Sync apabila ada internet.</div>
+    <div class="topbar">
+      <div class="tb-l">
+        <button class="hbg" onclick="openSB()">☰</button>
+        <div><div class="pt" id="pageT">Dashboard</div><div class="ps" id="pageS">SK Datin Khadijah</div></div>
+      </div>
+      <div class="tb-r">
+        <button class="tb-btn" onclick="syncData()" title="Sync ke Google Sheets">🔄</button>
+        <button class="tb-btn" onclick="eksportKelas()" title="Download rekod kelas saya" style="background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20">⬇️ Download</button>
+        <button class="tb-btn p" onclick="navTo('rekod',null)">✏️ Rekod</button>
+      </div>
+    </div>
+
+    <div id="mc">
+
+      <!-- DASHBOARD -->
+      <div class="screen active" id="sc-dash">
+
+        <!-- Butang Tindakan Pantas — 1 klik -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px" id="quickActions">
+          <button class="btn btn-p" style="padding:14px 10px;font-size:13px;justify-content:center;flex-direction:column;gap:4px;height:70px" onclick="navTo('rekod',null)">
+            <span style="font-size:22px">📋</span>Rekod Bacaan
+          </button>
+          <button class="btn" style="padding:14px 10px;font-size:13px;justify-content:center;flex-direction:column;gap:4px;height:70px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80" onclick="navTo('alert',null)">
+            <span style="font-size:22px">🔔</span>Semak Amaran
+          </button>
+          <button class="btn" style="padding:14px 10px;font-size:13px;justify-content:center;flex-direction:column;gap:4px;height:70px;background:#e8f5e9;color:#1b5e20;border:1.5px solid #a5d6a7" onclick="eksportKelas()">
+            <span style="font-size:22px">⬇️</span>Download Rekod
+          </button>
+          <button class="btn" style="padding:14px 10px;font-size:13px;justify-content:center;flex-direction:column;gap:4px;height:70px;background:#e8eaf6;color:#283593;border:1.5px solid #9fa8da" onclick="navTo('laporan',null)">
+            <span style="font-size:22px">📊</span>Lihat Laporan
+          </button>
+        </div>
+
+        <div class="stat-row" id="dashStats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+          <div class="card">
+            <div class="ch"><h3>📈 Sesi Minggu Ini</h3><span style="font-size:11px;color:var(--gray4)">Isnin–Jumaat</span></div>
+            <div class="cb" id="wkChart"></div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>📅 Sesi Bulanan</h3></div>
+            <div class="cb" id="moChart"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="card">
+            <div class="ch"><h3>⚠️ Perlu Perhatian</h3><span class="bdg br" id="dashAlertCount">0</span></div>
+            <div class="cb" style="max-height:240px;overflow-y:auto;padding:12px" id="dashAlerts"></div>
+          </div>
+          <div class="card">
+            <div class="ch">
+              <h3>📋 Rekod Terkini</h3>
+              <button class="btn btn-sm btn-s" onclick="eksportKelas()" style="font-size:11px;padding:4px 10px">⬇️ Download</button>
+            </div>
+            <div class="cb np" style="max-height:240px;overflow-y:auto" id="dashRecent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REKOD -->
+      <div class="screen" id="sc-rekod">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+          <div>
+            <div class="card">
+              <div class="ch"><h3>📋 Rekod Bacaan Baharu</h3></div>
+              <div class="cb">
+
+                <!-- PILIH MURID — UI baharu -->
+                <div class="fg" style="margin-bottom:14px">
+                  <div class="fl" style="margin-bottom:8px">Pilih Murid</div>
+
+                  <!-- Filter Darjah + Kelas -->
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+                    <select class="fc" id="rkD" onchange="rkFiltMurid()" style="font-size:13px">
+                      <option value="">Semua Darjah</option>
+                      <option>Darjah 1</option><option>Darjah 2</option><option>Darjah 3</option>
+                      <option>Darjah 4</option><option>Darjah 5</option><option>Darjah 6</option>
+                    </select>
+                    <select class="fc" id="rkK" onchange="rkFiltMurid()" style="font-size:13px">
+                      <option value="">Semua Kelas</option>
+                    </select>
+                  </div>
+
+                  <!-- Carian nama -->
+                  <input class="fc" id="rkCari" placeholder="🔍 Taip nama murid..." oninput="rkFiltMurid()" style="margin-bottom:8px">
+
+                  <!-- Chip kumpulan — muncul jika ada kumpulan -->
+                  <div id="kumpulanFilter" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px"></div>
+
+                  <!-- Senarai murid sebagai kad boleh tap -->
+                  <div id="rkMuridList" style="max-height:260px;overflow-y:auto;border:1.5px solid var(--gray2);border-radius:var(--r-md);background:white">
+                    <div style="padding:14px;text-align:center;color:var(--gray4);font-size:13px">Pilih darjah atau taip nama</div>
+                  </div>
+
+                  <!-- Murid terpilih -->
+                  <div id="rkMuridPilih" style="display:none;background:var(--g7);border:1.5px solid var(--g4);border-radius:var(--r-md);padding:10px 12px;margin-top:8px;display:flex;align-items:center;justify-content:space-between">
+                    <div>
+                      <div style="font-size:13px;font-weight:700;color:var(--g1)" id="rkMuridNama">—</div>
+                      <div style="font-size:11px;color:var(--g2);margin-top:2px" id="rkMuridInfo">—</div>
+                    </div>
+                    <button onclick="rkClearMurid()" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--gray4)">✕</button>
+                  </div>
+                  <!-- Hidden select untuk backward compat -->
+                  <select id="rkM" style="display:none" onchange="rkOnMurid()"></select>
+                </div>
+
+                <!-- Progress bar -->
+                <div class="pw" id="rkPW" style="display:none;margin-bottom:8px"><div class="pf" id="rkPF" style="width:0%"></div></div>
+                <div class="pl" id="rkPL" style="margin-bottom:8px"></div>
+
+                <!-- Jenis Bacaan -->
+                <div class="fg">
+                  <div class="fl">Jenis Bacaan</div>
+                  <div class="jp">
+                    <div class="jpb ab" id="jbB" onclick="rkJenis('Iqra Baru')">📘 Iqra Baru</div>
+                    <div class="jpb" id="jbL" onclick="rkJenis('Iqra Lama')">📕 Iqra Lama</div>
+                    <div class="jpb" id="jbQ" onclick="rkJenis('Al-Quran')">📗 Al-Quran</div>
+                  </div>
+                </div>
+                <div class="fg" id="rkPGrp">
+                  <div class="fl">Peringkat</div>
+                  <select class="fc" id="rkP" onchange="rkRange()">
+                    <option>Iqra 1</option><option>Iqra 2</option><option>Iqra 3</option>
+                    <option>Iqra 4</option><option>Iqra 5</option><option>Iqra 6</option>
+                  </select>
+                </div>
+                <div class="fg">
+                  <div class="fl">Iqra/Juzuk <span class="fhint" id="rkRH"></span></div>
+                  <input class="fc" id="rkIL" readonly style="background:var(--gray0);color:var(--gray5)">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px">
+                  <div class="fg" style="margin:0"><div class="fl">M/S Dari</div><input class="fc" type="number" id="rkDr" oninput="rkHitung()"></div>
+                  <div class="fg" style="margin:0"><div class="fl">M/S Ke</div><input class="fc" type="number" id="rkKe" oninput="rkHitung()"></div>
+                </div>
+                <div class="juz-b" id="rkJB"></div>
+                <div class="warn-b" id="rkWB"></div>
+                <div class="jml-h" id="rkJH"></div>
+                <div class="dvd"></div>
+                <div class="fg">
+                  <div class="fl">Kualiti</div>
+                  <div class="qgrid">
+                    <div class="qb qc active" onclick="rkQ('Cemerlang ⭐⭐⭐',this)">⭐⭐⭐ Cemerlang<br><small>Lancar & Tepat</small></div>
+                    <div class="qb qk" onclick="rkQ('Baik ⭐⭐',this)">⭐⭐ Baik<br><small>Kesilapan kecil</small></div>
+                    <div class="qb qu" onclick="rkQ('Perlu Ulang ⭐',this)">⭐ Perlu Ulang<br><small>Banyak kesilapan</small></div>
+                    <div class="qb ql" onclick="rkQ('Belum Lulus ❌',this)">❌ Belum Lulus<br><small>Latihan semula</small></div>
+                  </div>
+                </div>
+                <div class="fg"><div class="fl">Nama Guru</div><input class="fc" id="rkGr" placeholder="Auto dari login"></div>
+                <div class="fg"><div class="fl">Catatan</div><input class="fc" id="rkCt" placeholder="cth: Perlu latih huruf ع"></div>
+                <div class="cr" onclick="rkTglChk('rkC1')"><div class="cb2 on" id="rkC1">✓</div><div class="cl">Kemaskini kedudukan murid auto</div></div>
+                <div class="cr" onclick="rkTglChk('rkC2')"><div class="cb2" id="rkC2"></div><div class="cl">Naik ke peringkat seterusnya</div></div>
+                <div style="margin-top:12px"><button class="btn btn-p" style="width:100%;padding:14px;font-size:15px" onclick="rkSimpan()">✅ Simpan Rekod</button></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch">
+              <h3>📋 Rekod Hari Ini</h3>
+              <div style="display:flex;gap:6px;align-items:center">
+                <span class="bdg bg" id="todayCnt">0</span>
+                <button class="btn btn-sm btn-s" onclick="eksportKelas()" style="font-size:11px;padding:4px 10px">⬇️ Download</button>
+              </div>
+            </div>
+            <div class="cb np" id="todayList" style="max-height:600px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KHATAM -->
+      <div class="screen" id="sc-khatam">
+        <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:14px;align-items:start">
+          <div>
+            <div class="kt-hero"><div class="trophy">🏆</div><h2>Rekod Khatam Al-Quran</h2><p>SK Datin Khadijah</p></div>
+            <div class="card">
+              <div class="cb">
+                <div class="fg"><div class="fl">Murid</div>
+                  <select class="fc" id="ktM" onchange="ktOnMurid()"><option value="">-- Pilih --</option></select>
+                  <div id="ktDisp" style="display:none;text-align:center;background:#fffbf0;border:1px solid #ffe082;border-radius:var(--r-md);padding:12px;margin-top:10px">
+                    <div style="font-size:11px;color:var(--gray5)">Bilangan Khatam Semasa</div>
+                    <div class="kt-num" id="ktNum">0</div>
+                    <div style="font-size:12px;color:var(--gray5)">Selepas ini: <b id="ktNext">1</b>x</div>
+                  </div>
+                </div>
+                <div class="fg"><div class="fl">Tarikh Khatam</div><input class="fc" type="date" id="ktT"></div>
+                <div class="fg"><div class="fl">Tahun Khatam</div><input class="fc" type="number" id="ktTh" placeholder="2025"></div>
+                <div class="fg"><div class="fl">Catatan / Majlis</div><input class="fc" id="ktCt" placeholder="cth: Majlis Khatam surau sekolah..."></div>
+                <div class="fg"><div class="fl">Nama Guru</div><input class="fc" id="ktGr"></div>
+                <button class="btn btn-g" style="width:100%;font-size:14px;margin-top:4px" onclick="ktSahkan()">🏆 Sahkan Khatam Al-Quran</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ch"><h3>🏆 Sejarah Khatam SK Datin Khadijah</h3></div>
+            <div class="cb" style="max-height:560px;overflow-y:auto" id="ktHist"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LAPORAN -->
+      <div class="screen" id="sc-laporan">
+        <div style="display:flex;gap:8px;border-bottom:2px solid var(--gray2);margin-bottom:16px;overflow-x:auto;scrollbar-width:none">
+          <button class="tab-b active" onclick="lapTab('M',this)">📈 Mingguan</button>
+          <button class="tab-b" onclick="lapTab('B',this)">📅 Bulanan</button>
+          <button class="tab-b" onclick="lapTab('mu',this)">👥 Senarai Murid</button>
+          <button class="tab-b" onclick="lapTab('D',this)">🏫 Per Darjah</button>
+          <button class="tab-b" onclick="lapTab('G',this)">👩‍🏫 Per Guru</button>
+          <button class="tab-b" onclick="lapTab('kump',this)">👥 Kumpulan Bacaan</button>
+        </div>
+        <div id="lapContent"></div>
+      </div>
+
+      <!-- ALERT -->
+      <div class="screen" id="sc-alert">
+        <div class="card" style="margin-bottom:14px"><div class="cb">
+          <div class="fc-row">
+            <div class="fchip active" onclick="alertFilter(7,this)">7 hari tiada rekod</div>
+            <div class="fchip" onclick="alertFilter(14,this)">14 hari</div>
+            <div class="fchip" onclick="alertFilter(30,this)">30 hari</div>
+            <div class="fchip" onclick="alertFilter(0,this)">Semua murid</div>
+          </div>
+        </div></div>
+        <div id="alertList"></div>
+      </div>
+
+      <!-- MURID -->
+      <div class="screen" id="sc-murid">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;align-items:center">
+          <input class="fc" id="mCari" placeholder="🔍 Cari nama..." style="width:200px" oninput="renderMurid()">
+          <select class="fc" id="mDF" style="width:auto" onchange="renderMurid()">
+            <option value="">Semua Darjah</option>
+            <option>Darjah 1</option><option>Darjah 2</option><option>Darjah 3</option>
+            <option>Darjah 4</option><option>Darjah 5</option><option>Darjah 6</option>
+          </select>
+          <select class="fc" id="mJF" style="width:auto" onchange="renderMurid()">
+            <option value="">Semua Jenis</option>
+            <option>Iqra Baru</option><option>Iqra Lama</option><option>Al-Quran</option>
+          </select>
+          <button class="btn btn-p" onclick="openAddMurid()" style="margin-left:auto">+ Tambah Murid</button>
+        </div>
+        <div class="card"><div class="cb np" style="overflow-x:auto">
+          <table class="dt"><thead><tr>
+            <th>Nama</th><th>Darjah</th><th>Kelas</th><th>Guru</th>
+            <th>Jenis</th><th>Peringkat</th><th>M/S</th><th>Khatam</th><th>Status</th><th>Tindakan</th>
+          </tr></thead><tbody id="mTbody"></tbody></table>
+        </div></div>
+      </div>
+
+      <!-- GURU -->
+      <div class="screen" id="sc-guru">
+        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center;margin-bottom:14px">
+          <div style="font-size:13px;color:var(--gray5)">Setiap kelas boleh ada <b>2 orang guru</b> atau lebih</div>
+          <button class="btn btn-p" onclick="openAddGuru()">+ Tambah Guru</button>
+        </div>
+        <!-- Senarai guru mengikut kelas -->
+        <div id="guruByKelas" style="margin-bottom:16px"></div>
+        <div class="card"><div class="ch"><h3>👩‍🏫 Semua Guru</h3></div>
+          <div class="cb np">
+            <table class="dt"><thead><tr>
+              <th>Nama</th><th>Email/Username</th><th>Darjah</th><th>Kelas</th><th>Peranan</th><th>Tindakan</th>
+            </tr></thead><tbody id="gTbody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAHUN -->
+      <div class="screen" id="sc-tahun">
+        <div class="yr-card"><h3>📅 Pengurusan Tahun Akademik</h3><p>Bawa murid ke tahun baru, tukar kelas dan guru secara automatik</p></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="card"><div class="ch"><h3>🔄 Bawa ke Tahun Hadapan</h3></div>
+            <div class="cb">
+              <p style="font-size:12px;color:var(--gray5);margin-bottom:12px">Naikkan darjah semua murid aktif. Darjah 6 akan ditanda Tamat.</p>
+              <div class="fg"><div class="fl">Tahun Baharu</div><input class="fc" type="number" id="tTB" placeholder="2026"></div>
+              <div class="fg"><div class="fl">Senarai Kelas Baharu (pisah koma)</div><input class="fc" id="tKB" placeholder="Bestari,Bijak,Cerdas"></div>
+              <button class="btn btn-p" style="width:100%;margin-top:8px" onclick="doTahun()">🚀 Jalankan Proses Tahun Baru</button>
+            </div>
+          </div>
+          <div class="card"><div class="ch"><h3>👩‍🏫 Tugasan Guru</h3></div>
+            <div class="cb"><div id="tGGrid"></div>
+              <button class="btn btn-p" style="width:100%;margin-top:12px" onclick="simpanTugas()">💾 Simpan Tugasan</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:14px"><div class="ch"><h3>📜 Log Perubahan</h3></div>
+          <div class="cb np" style="overflow-x:auto">
+            <table class="dt"><thead><tr><th>Tarikh</th><th>Tindakan</th><th>Oleh</th><th>Detail</th></tr></thead>
+            <tbody id="tLog"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPORT -->
+      <div class="screen" id="sc-export">
+
+        <!-- IMPORT EXCEL -->
+        <div class="card" style="margin-bottom:14px;border:2px solid #2d9164">
+          <div class="ch" style="background:#f0faf2"><h3>📥 Import Senarai Murid dari Excel</h3><span class="bdg bg">ADMIN</span></div>
+          <div class="cb">
+            <div style="background:#e1f5ee;border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px;font-size:13px;color:#085041;line-height:1.6">
+              <b>📋 Format Excel yang diterima:</b><br>
+              Lajur: <b>BIL | NAMA MURID | MY KID | NO. PENDAFTARAN</b><br>
+              Setiap sheet = satu kelas (contoh: sheet "3J" = Darjah 3 Jauhari)<br>
+              Row pertama = tajuk, row kedua = nama guru kelas
+            </div>
+            <!-- Drop Zone -->
+            <div id="dropZone" style="border:2px dashed var(--gray3);border-radius:var(--r-lg);padding:28px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px"
+              onclick="document.getElementById('xlsxFile').click()"
+              ondragover="ev.preventDefault();this.style.borderColor='#2d9164';this.style.background='#f0faf2'"
+              ondragleave="this.style.borderColor='';this.style.background=''"
+              ondrop="dropExcel(event)">
+              <div style="font-size:36px;margin-bottom:8px">📊</div>
+              <div style="font-size:14px;font-weight:500;color:var(--gray7)">Klik atau seret fail Excel di sini</div>
+              <div style="font-size:12px;color:var(--gray5);margin-top:4px">.xlsx / .xls diterima</div>
+            </div>
+            <input type="file" id="xlsxFile" accept=".xlsx,.xls" style="display:none" onchange="prosesExcel(event)">
+
+            <!-- Preview area -->
+            <div id="xlsxPreview" style="display:none">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <div style="font-size:13px;font-weight:600;color:var(--gray8)" id="xlsxInfo"></div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-sm btn-s" onclick="batalImport()">✕ Batal</button>
+                  <button class="btn btn-sm btn-p" onclick="sahkanImport()">✅ Import Semua</button>
+                </div>
+              </div>
+              <!-- Tetapan import -->
+              <div style="background:var(--gray0);border-radius:var(--r-md);padding:12px;margin-bottom:10px;font-size:13px">
+                <div style="font-weight:600;margin-bottom:8px;color:var(--gray8)">⚙️ Tetapan Import</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <div class="fg" style="margin:0">
+                    <div class="fl">Jenis Iqra Default</div>
+                    <select class="fc" id="impJenis"><option value="Iqra Baru">Iqra Baru</option><option value="Iqra Lama">Iqra Lama</option></select>
+                  </div>
+                  <div class="fg" style="margin:0">
+                    <div class="fl">Peringkat Default</div>
+                    <select class="fc" id="impPeringkat">
+                      <option>Iqra 1</option><option>Iqra 2</option><option>Iqra 3</option>
+                      <option>Iqra 4</option><option>Iqra 5</option><option>Iqra 6</option>
+                      <option>Al-Quran</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="cr" onclick="rkTglChk2('impSkipSedia')" style="margin-top:8px">
+                  <div class="cb2 on" id="impSkipSedia">✓</div>
+                  <div class="cl">Langkau murid yang sudah ada (elak duplikat)</div>
+                </div>
+              </div>
+              <!-- Preview table -->
+              <div style="overflow-x:auto;max-height:360px;overflow-y:auto;border-radius:var(--r-md);border:1px solid var(--gray2)">
+                <table class="dt" id="xlsxTable">
+                  <thead><tr>
+                    <th style="position:sticky;top:0;background:var(--gray0)">✓</th>
+                    <th style="position:sticky;top:0;background:var(--gray0)">Nama Murid</th>
+                    <th style="position:sticky;top:0;background:var(--gray0)">Darjah</th>
+                    <th style="position:sticky;top:0;background:var(--gray0)">Kelas</th>
+                    <th style="position:sticky;top:0;background:var(--gray0)">Status</th>
+                  </tr></thead>
+                  <tbody id="xlsxTbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Progress bar import -->
+            <div id="importProgress" style="display:none;margin-top:10px">
+              <div style="font-size:13px;font-weight:600;margin-bottom:6px" id="importProgressText">Mengimport...</div>
+              <div class="pw"><div class="pf" id="importProgressFill" style="width:0%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- EXPORT -->
+        <div class="card" style="margin-bottom:14px"><div class="ch"><h3>📤 Export Data SK Datin Khadijah</h3></div>
+          <div class="cb">
+            <div class="fgrid" style="margin-bottom:16px">
+              <div class="fg"><div class="fl">Darjah</div><select class="fc" id="exD"><option value="">Semua</option><option>Darjah 1</option><option>Darjah 2</option><option>Darjah 3</option><option>Darjah 4</option><option>Darjah 5</option><option>Darjah 6</option></select></div>
+              <div class="fg"><div class="fl">Bulan</div><select class="fc" id="exB"><option value="">Semua</option><option value="0">Januari</option><option value="1">Februari</option><option value="2">Mac</option><option value="3">April</option><option value="4">Mei</option><option value="5">Jun</option><option value="6">Julai</option><option value="7">Ogos</option><option value="8">September</option><option value="9">Oktober</option><option value="10">November</option><option value="11">Disember</option></select></div>
+              <div class="fg"><div class="fl">Tahun</div><input class="fc" type="number" id="exTh" value="2025"></div>
+            </div>
+            <div class="eo" onclick="doExport('rekod')"><div class="eoi">📊</div><div class="eot"><h4>Rekod Bacaan (CSV/Excel)</h4><p>Semua rekod tasmik dengan tarikh, guru, kualiti</p></div></div>
+            <div class="eo" onclick="doExport('murid')"><div class="eoi">👥</div><div class="eot"><h4>Senarai Murid (CSV/Excel)</h4><p>Profil murid, kemajuan dan bilangan khatam</p></div></div>
+            <div class="eo" onclick="doExport('khatam')"><div class="eoi">🏆</div><div class="eot"><h4>Rekod Khatam (CSV/Excel)</h4><p>Sejarah khatam Al-Quran mengikut tahun</p></div></div>
+            <div class="eo" onclick="doExport('laporan')"><div class="eoi">📈</div><div class="eot"><h4>Laporan Analisis (CSV/Excel)</h4><p>Ringkasan per darjah dan per guru</p></div></div>
+            <div class="eo" onclick="doBackupJSON()"><div class="eoi">💾</div><div class="eot"><h4>Backup Penuh (JSON)</h4><p>Backup semua data untuk keselamatan</p></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TETAPAN -->
+      <div class="screen" id="sc-tetapan">
+        <div class="card" style="margin-bottom:14px"><div class="ch"><h3>⚙️ Tetapan Sistem</h3></div>
+          <div class="cb">
+            <div class="fg"><div class="fl">Nama Sekolah</div><input class="fc" id="setNS" value="SK DATIN KHADIJAH" readonly></div>
+            <div class="fg"><div class="fl">URL Google Apps Script</div><input class="fc" id="setUrl" placeholder="https://script.google.com/..."></div>
+            <div class="fg"><div class="fl">Ambang Amaran (hari tanpa rekod)</div><input class="fc" type="number" id="setAD" value="7"></div>
+            <button class="btn btn-p" onclick="simpanTetapan()">💾 Simpan Tetapan</button>
+            <div class="dvd"></div>
+            <div class="fg"><div class="fl">Tukar Kata Laluan Admin</div>
+              <input class="fc" type="password" id="setOP" placeholder="Kata laluan lama" style="margin-bottom:8px">
+              <input class="fc" type="password" id="setNP" placeholder="Kata laluan baru">
+            </div>
+            <button class="btn btn-b" onclick="doTukarKP()">🔑 Tukar Kata Laluan</button>
+          </div>
+        </div>
+
+        <!-- Pengurusan Data -->
+        <div class="card"><div class="ch"><h3>🗄️ Pengurusan Data</h3></div>
+          <div class="cb">
+            <div style="background:var(--g7);border-radius:var(--r-md);padding:10px 12px;font-size:12px;color:var(--g1);margin-bottom:14px;line-height:1.5">
+              📊 <b>Data semasa:</b>
+              <span id="statMurid">— murid</span> •
+              <span id="statRekod">— rekod</span> •
+              <span id="statGuru">— guru</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <button class="btn btn-s" onclick="paksa_seed()" style="flex-direction:column;gap:4px;height:60px;justify-content:center">
+                <span>🔄 Muat Semula Murid</span>
+                <span style="font-size:10px;opacity:.7">Isi semula 162 murid SKDK</span>
+              </button>
+              <button class="btn btn-s" onclick="manualDedup()" style="flex-direction:column;gap:4px;height:60px;justify-content:center">
+                <span>🧹 Buang Duplikat</span>
+                <span style="font-size:10px;opacity:.7">Padam nama murid berulang</span>
+              </button>
+              <button class="btn btn-s" onclick="syncData()" style="flex-direction:column;gap:4px;height:60px;justify-content:center">
+                <span>☁️ Sync Google Sheets</span>
+                <span style="font-size:10px;opacity:.7">Hantar semua data ke server</span>
+              </button>
+              <button class="btn btn-s" onclick="doBackupJSON()" style="flex-direction:column;gap:4px;height:60px;justify-content:center">
+                <span>💾 Backup Data</span>
+                <span style="font-size:10px;opacity:.7">Download fail JSON</span>
+              </button>
+              <button class="btn btn-s" onclick="importJSON()" style="flex-direction:column;gap:4px;height:60px;justify-content:center">
+                <span>📥 Import Backup</span>
+                <span style="font-size:10px;opacity:.7">Pulihkan dari fail JSON</span>
+              </button>
+            </div>
+            <input type="file" id="jsonFile" accept=".json" style="display:none" onchange="prosesImportJSON(event)">
+            <div class="dvd"></div>
+            <button class="btn btn-d btn-sm" onclick="clearCache()" style="width:100%">
+              🗑️ Padam Semua Data Tempatan (Hati-hati!)
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- mc -->
+  </div><!-- mw -->
+</div><!-- app -->
+
+<!-- MODAL MURID -->
+<div class="mo" id="moM">
+  <div class="mb2">
+    <div class="mh"><h2 id="moMT">Tambah Murid</h2><button class="mcl" onclick="closeM('moM')">✕</button></div>
+    <div class="mc2">
+      <div class="fgrid">
+        <div class="fg"><div class="fl">Nama Penuh *</div><input class="fc" id="mmN" placeholder="Nama murid"></div>
+        <div class="fg"><div class="fl">No. Murid</div><input class="fc" id="mmNo" placeholder="cth: 2025001"></div>
+        <div class="fg"><div class="fl">Darjah *</div>
+          <select class="fc" id="mmD"><option>Darjah 1</option><option>Darjah 2</option><option>Darjah 3</option><option>Darjah 4</option><option>Darjah 5</option><option>Darjah 6</option></select>
+        </div>
+        <div class="fg"><div class="fl">Kelas *</div><input class="fc" id="mmK" placeholder="cth: Bestari"></div>
+        <div class="fg"><div class="fl">Jenis *</div>
+          <select class="fc" id="mmJ" onchange="mmUpd()"><option>Iqra Baru</option><option>Iqra Lama</option><option>Al-Quran</option></select>
+        </div>
+        <div class="fg"><div class="fl">Peringkat</div>
+          <select class="fc" id="mmP" onchange="mmUpd()"><option>Iqra 1</option><option>Iqra 2</option><option>Iqra 3</option><option>Iqra 4</option><option>Iqra 5</option><option>Iqra 6</option><option>Al-Quran</option></select>
+        </div>
+        <div class="fg"><div class="fl">Muka Surat <span class="fhint" id="mmMH"></span></div><input class="fc" type="number" id="mmMS"></div>
+        <div class="fg"><div class="fl">Bil. Khatam</div><input class="fc" type="number" id="mmBK" value="0" min="0"></div>
+        <div class="fg"><div class="fl">Guru</div><select class="fc" id="mmGr"></select></div>
+        <div class="fg"><div class="fl">Status</div><select class="fc" id="mmSt"><option>Aktif</option><option>Bercuti</option><option>Pindah</option><option>Tamat</option></select></div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-s" onclick="closeM('moM')">Batal</button>
+      <button class="btn btn-p" onclick="simpanMurid()">✅ Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GURU -->
+<div class="mo" id="moG">
+  <div class="mb2">
+    <div class="mh"><h2 id="moGT">Tambah Guru</h2><button class="mcl" onclick="closeM('moG')">✕</button></div>
+    <div class="mc2">
+      <div class="fgrid">
+        <div class="fg"><div class="fl">Nama Penuh *</div><input class="fc" id="mgN" placeholder="cth: Ustazah Aminah"></div>
+        <div class="fg">
+          <div class="fl">Username Login *</div>
+          <input class="fc" id="mgE" placeholder="cth: aminah / guru1j" autocomplete="off">
+          <div class="fhint" style="margin-top:4px">Boleh guna nama pendek, nombor atau email. Ini yang digunakan untuk log masuk.</div>
+        </div>
+        <div class="fg"><div class="fl">Kata Laluan</div><input class="fc" type="password" id="mgP" placeholder="Kosong = guru@SKDK"></div>
+        <div class="fg"><div class="fl">Email (Pilihan)</div><input class="fc" id="mgEmail" type="email" placeholder="email@moe-dl.edu.my (untuk terima notifikasi)"></div>
+        <div class="fg"><div class="fl">Peranan</div><select class="fc" id="mgPr"><option value="guru">Guru</option><option value="admin">Pentadbir</option></select></div>
+        <div class="fg"><div class="fl">Darjah</div><input class="fc" id="mgD" placeholder="cth: Darjah 3"></div>
+        <div class="fg"><div class="fl">Kelas</div><input class="fc" id="mgK" placeholder="cth: Jauhari"></div>
+      </div>
+      <div class="info-b" style="margin-top:4px">💡 Username digunakan untuk log masuk. Email tidak wajib — hanya diperlukan jika nak hantar notifikasi.</div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-s" onclick="closeM('moG')">Batal</button>
+      <button class="btn btn-p" onclick="simpanGuru()">✅ Simpan & Hantar Email</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL QUICK EDIT MURID -->
+<div class="mo" id="moQuickEdit">
+  <div class="mb2">
+    <div class="mh"><h2>✏️ Edit Murid</h2><button class="mcl" onclick="closeM('moQuickEdit')">✕</button></div>
+    <div class="mc2">
+      <div style="background:var(--g7);border-radius:var(--r-md);padding:10px 14px;margin-bottom:14px;font-size:14px;font-weight:700;color:var(--g1)" id="qeNamaMurid"></div>
+      <div class="fgrid">
+        <div class="fg"><div class="fl">Jenis Bacaan</div>
+          <select class="fc" id="qeJenis" onchange="qeUpdateRange()">
+            <option>Iqra Baru</option><option>Iqra Lama</option><option>Al-Quran</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl">Peringkat</div>
+          <select class="fc" id="qePeringkat" onchange="qeUpdateRange()">
+            <option>Iqra 1</option><option>Iqra 2</option><option>Iqra 3</option>
+            <option>Iqra 4</option><option>Iqra 5</option><option>Iqra 6</option>
+            <option>Al-Quran</option><option>Khatam</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl">Muka Surat <span class="fhint" id="qeMH"></span></div>
+          <input class="fc" type="number" id="qeMS">
+        </div>
+        <div class="fg"><div class="fl">Darjah</div>
+          <select class="fc" id="qeDarjah">
+            <option>Darjah 1</option><option>Darjah 2</option><option>Darjah 3</option>
+            <option>Darjah 4</option><option>Darjah 5</option><option>Darjah 6</option>
+          </select>
+        </div>
+        <div class="fg"><div class="fl">Kelas</div><input class="fc" id="qeKelas"></div>
+        <div class="fg"><div class="fl">Status</div>
+          <select class="fc" id="qeSt">
+            <option>Aktif</option><option>Bercuti</option><option>Pindah</option><option>Tamat</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-d btn-sm" onclick="qeHapus()">🗑 Padam</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-s" onclick="closeM('moQuickEdit')">Batal</button>
+      <button class="btn btn-p" onclick="qeSimpan()">✅ Simpan</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL KUMPULAN BACAAN -->
+<div class="mo" id="moKumpulan">
+  <div class="mb2">
+    <div class="mh"><h2 id="moKT">👥 Kumpulan Bacaan</h2><button class="mcl" onclick="closeM('moKumpulan')">✕</button></div>
+    <div class="mc2">
+      <div style="background:var(--blue2);border-radius:var(--r-md);padding:10px 14px;font-size:12px;color:var(--blue);margin-bottom:14px;line-height:1.6">
+        💡 Guru boleh pecahkan murid kepada kumpulan bacaan. Contoh: <b>Kumpulan A, B, C</b> atau <b>Merah, Biru, Hijau</b>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+        <div class="fg" style="margin:0">
+          <div class="fl">Darjah</div>
+          <select class="fc" id="kpDarjah" onchange="kpMuatKelas()">
+            <option value="">Pilih Darjah</option>
+            <option>Darjah 1</option><option>Darjah 2</option><option>Darjah 3</option>
+            <option>Darjah 4</option><option>Darjah 5</option><option>Darjah 6</option>
+          </select>
+        </div>
+        <div class="fg" style="margin:0">
+          <div class="fl">Kelas</div>
+          <select class="fc" id="kpKelas" onchange="kpMuatMurid()"><option value="">Pilih Kelas</option></select>
+        </div>
+      </div>
+      <div id="kpSenarai" style="margin-bottom:12px"></div>
+      <div style="background:var(--gray0);border-radius:var(--r-md);padding:12px;border:1px dashed var(--gray3)">
+        <div style="font-size:11px;font-weight:700;color:var(--gray5);margin-bottom:8px;text-transform:uppercase">+ Tambah Kumpulan Baru</div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px">
+          <input class="fc" id="kpNamaBaru" placeholder="cth: Kumpulan A">
+          <button class="btn btn-p btn-sm" onclick="kpTambah()">Tambah</button>
+        </div>
+      </div>
+      <div id="kpMuridList" style="margin-top:14px"></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-s" onclick="closeM('moKumpulan')">Tutup</button>
+      <button class="btn btn-p" onclick="kpSimpan()">💾 Simpan Kumpulan</button>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-b{padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--gray5);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;}
+.tab-b.active{color:var(--g1);border-bottom-color:var(--g1);}
+.tab-b:hover:not(.active){color:var(--gray7);}
+</style>
+
+<script>
+/* ═══════════════════════════════════════
+   CONFIG & CONSTANTS
+═══════════════════════════════════════ */
+const SKDK = 'SK DATIN KHADIJAH';
+const ADMIN_EMAIL = 'g-29307946@moe-dl.edu.my';
+const IB={'Iqra 1':{dari:3,ke:34,j:'Jilid 1'},'Iqra 2':{dari:37,ke:66,j:'Jilid 1'},'Iqra 3':{dari:69,ke:98,j:'Jilid 1'},'Iqra 4':{dari:101,ke:130,j:'Jilid 1'},'Iqra 5':{dari:3,ke:32,j:'Jilid 2'},'Iqra 6':{dari:35,ke:67,j:'Jilid 2'}};
+const IL={'Iqra 1':{dari:1,ke:32},'Iqra 2':{dari:1,ke:30},'Iqra 3':{dari:1,ke:30},'Iqra 4':{dari:1,ke:30},'Iqra 5':{dari:1,ke:30},'Iqra 6':{dari:1,ke:31}};
+// Muka surat permulaan setiap Juzuk — Mushaf Uthmani (setiap juzuk = 20 m/s)
+const JS={1:1,2:21,3:41,4:61,5:81,6:101,7:121,8:141,9:161,10:181,11:201,12:221,13:241,14:261,15:281,16:301,17:321,18:341,19:361,20:381,21:401,22:421,23:441,24:461,25:481,26:501,27:521,28:541,29:561,30:581};
+// Jumlah muka surat Al-Quran Mushaf Uthmani = 604 m/s (Juzuk 30 berakhir m/s 604)
+const PO=['Iqra 1','Iqra 2','Iqra 3','Iqra 4','Iqra 5','Iqra 6','Al-Quran','Khatam'];
+const BL=['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogs','Sep','Okt','Nov','Dis'];
+const BLF=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+const DARJAH=['Darjah 1','Darjah 2','Darjah 3','Darjah 4','Darjah 5','Darjah 6'];
+
+let API_URL = '';
+let IS_OFFLINE = false;
+let DB = {guru:[],murid:[],rekod:[],khatam:[]};
+let CU = null; // current user
+let rkJenisVal='Iqra Baru', rkQVal='Cemerlang ⭐⭐⭐';
+let editMuridId=null, editGuruId=null;
+let alertDays=7, activeLapTab='M';
+let pendingSync=[]; // offline queue
+
+/* ═══════════════════════════════════════
+   CONFIG / BACKEND CONNECT
+═══════════════════════════════════════ */
+function loadConfig(){
+  const saved=localStorage.getItem('skdk_api_url');
+  const offline=localStorage.getItem('skdk_offline');
+  if(saved){API_URL=saved;document.getElementById('cfgUrl').value=saved;}
+  if(offline==='1') IS_OFFLINE=true;
+
+  // Load local DB
+  const ldb=localStorage.getItem('skdk_db');
+  if(ldb) try{DB=JSON.parse(ldb);}catch(e){}
+  if(!DB.guru) DB.guru=[];
+  if(!DB.murid) DB.murid=[];
+  if(!DB.rekod) DB.rekod=[];
+  if(!DB.khatam) DB.khatam=[];
+  if(!DB.kumpulan) DB.kumpulan=[];
+
+  const pending=localStorage.getItem('skdk_pending');
+  if(pending) try{pendingSync=JSON.parse(pending);}catch(e){}
+}
+
+function sambungBackend(){
+  const url=document.getElementById('cfgUrl').value.trim();
+  if(!url||!url.startsWith('https://')){showT('Sila masukkan URL yang sah (https://...)','err');return;}
+  API_URL=url;
+  localStorage.setItem('skdk_api_url',url);
+  IS_OFFLINE=false;
+  localStorage.removeItem('skdk_offline');
+  document.getElementById('configScreen').classList.add('hidden');
+  updateSyncStatus(true);
+  showT('✅ URL disimpan! Mencuba sambungan...','ok');
+}
+
+async function testSambungan(){
+  const url = document.getElementById('cfgUrl').value.trim();
+  const resEl = document.getElementById('testResult');
+
+  if(!url){
+    resEl.style.display='';
+    resEl.style.background='#fcebeb';
+    resEl.style.color='#a32d2d';
+    resEl.innerHTML='❌ Sila masukkan URL dahulu';
+    return;
+  }
+
+  resEl.style.display='';
+  resEl.style.background='#faeeda';
+  resEl.style.color='#633806';
+  resEl.innerHTML='⏳ Menguji sambungan...';
+
+  try{
+    const res = await fetch(url, {
+      method: 'GET',
+      redirect: 'follow'
+    });
+    const text = await res.text();
+
+    if(text.includes('Tasmik API aktif') || text.includes('status')){
+      resEl.style.background='#eaf3de';
+      resEl.style.color='#27500a';
+      resEl.innerHTML='✅ <b>Sambungan berjaya!</b> Backend aktif.<br>Klik "Sambung Backend" untuk teruskan.';
+    } else if(text.includes('<!DOCTYPE') || text.includes('Sign in')){
+      resEl.style.background='#fcebeb';
+      resEl.style.color='#a32d2d';
+      resEl.innerHTML='❌ <b>Deploy salah!</b> URL redirect ke login Google.<br><br>Betulkan: <b>Who has access → "Anyone"</b> (bukan "Anyone with Google account").<br>Kemudian Deploy semula → New Deployment → Copy URL baru.';
+    } else {
+      resEl.style.background='#faeeda';
+      resEl.style.color='#633806';
+      resEl.innerHTML='⚠️ Respons luar jangka. Semak Deploy sekali lagi.<br><small>'+text.slice(0,100)+'</small>';
+    }
+  }catch(e){
+    if(e.message.includes('CORS') || e.message.includes('Failed to fetch')){
+      resEl.style.background='#fcebeb';
+      resEl.style.color='#a32d2d';
+      resEl.innerHTML='❌ <b>CORS Error</b> — URL betul tapi browser block.<br><br>Ini biasa dengan Google Apps Script apabila buka fail HTML secara <b>file://</b>. Cuba:<br>1. Upload ke Google Drive → buka dengan Chrome<br>2. ATAU guna mod Offline dulu';
+    } else {
+      resEl.style.background='#fcebeb';
+      resEl.style.color='#a32d2d';
+      resEl.innerHTML='❌ Ralat: '+e.message;
+    }
+  }
+}
+
+function gunaOffline(){
+  IS_OFFLINE=true;
+  localStorage.setItem('skdk_offline','1');
+  // Seed default admin for offline
+  if(!DB.guru.length){
+    DB.guru=[{id:'G0001',nama:'Admin SK Datin Khadijah',email:ADMIN_EMAIL,peranan:'admin',darjah:'',kelas:'',status:'Aktif'}];
+    saveLocal();
+  }
+  document.getElementById('configScreen').classList.add('hidden');
+  document.getElementById('apiStatus').className='api-status offline';
+  document.getElementById('apiDot').className='api-dot dot-offline';
+  document.getElementById('apiStatusText').textContent='Mod Offline';
+}
+
+/* ═══════════════════════════════════════
+   API CALLS
+═══════════════════════════════════════ */
+async function api(action, body={}){
+  if(IS_OFFLINE || !API_URL){
+    return handleOffline(action, body);
+  }
+  try{
+    // Google Apps Script perlukan redirect manual — guna redirect:'follow'
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'text/plain'}, // GAS lebih stabil dengan text/plain
+      body: JSON.stringify({action, ...body}),
+      redirect: 'follow'
+    });
+
+    if(!res.ok){
+      throw new Error('HTTP ' + res.status + ': ' + res.statusText);
+    }
+
+    const text = await res.text();
+    if(!text || !text.trim()){
+      throw new Error('Respons kosong dari server');
+    }
+
+    // GAS kadang-kadang wrap dalam callback — strip jika ada
+    const clean = text.trim().replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
+    const data = JSON.parse(clean || text);
+    return data;
+
+  }catch(e){
+    console.warn('API error:', e.message);
+    // Jangan terus offline — tunjuk error spesifik dulu
+    if(e.message.includes('CORS') || e.message.includes('Failed to fetch') || e.message.includes('NetworkError')){
+      IS_OFFLINE=true;
+      updateSyncStatus(false);
+      document.getElementById('syncBanner').classList.add('show');
+      showT('⚠️ Gagal sambung backend. Semak: Deploy "Anyone" & "Execute as Me"','warn',6000);
+    } else {
+      showT('⚠️ '+e.message,'warn',4000);
+    }
+    return handleOffline(action, body);
+  }
+}
+
+function handleOffline(action, body){
+  // Handle reads from local DB
+  if(action==='login'){
+    const u=DB.guru.find(g=>(g.email===body.username||g.username===body.username)&&g.status!=='Tamat');
+    if(u) return{ok:true,user:{id:u.id,nama:u.nama,email:u.email,peranan:u.peranan,darjah:u.darjah,kelas:u.kelas}};
+    // Offline: allow admin by email only
+    if(body.username===ADMIN_EMAIL) return{ok:true,user:{id:'G0001',nama:'Admin SKDK',email:ADMIN_EMAIL,peranan:'admin',darjah:'',kelas:''}};
+    return{ok:false,msg:'Tidak dapat sambung ke server. Semak internet anda.'};
+  }
+  if(action==='getAll') return{ok:true,data:{guru:DB.guru,murid:DB.murid,rekod:DB.rekod,khatam:DB.khatam,config:{namaSekolah:SKDK,alertDays:7}}};
+  if(action==='getDashboard') return buildLocalDashboard();
+
+  // Write actions: queue for later sync
+  const id='local_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  if(action==='addMurid'){DB.murid.push({id,...body.murid,status:'Aktif',tarihDaftar:new Date().toISOString(),tarihKemaskini:new Date().toISOString()});saveLocal();queueSync(action,body);return{ok:true,id};}
+  if(action==='addRekod'){DB.rekod.push({id,...body.rekod,tarikh:new Date().toISOString()});if(body.rekod.kemaskini||body.rekod.naikPeringkat) localUpdateMurid(body.rekod);saveLocal();queueSync(action,body);return{ok:true,id};}
+  if(action==='addKhatam'){DB.khatam.push({id,...body.khatam});localKhatamMurid(body.khatam);saveLocal();queueSync(action,body);return{ok:true,id};}
+  if(action==='addGuru'){DB.guru.push({id,...body.guru,status:'Aktif'});saveLocal();queueSync(action,body);return{ok:true,id};}
+  if(action==='editMurid'){const i=DB.murid.findIndex(m=>m.id===body.murid.id);if(i>=0){DB.murid[i]={...DB.murid[i],...body.murid};saveLocal();}queueSync(action,body);return{ok:true};}
+  return{ok:false,msg:'Offline - tidak dapat proses: '+action};
+}
+
+function localUpdateMurid(rekod){
+  const i=DB.murid.findIndex(m=>m.id===rekod.muridId);if(i<0)return;
+  if(rekod.naikPeringkat){const ci=PO.indexOf(rekod.peringkat);const next=ci>=0&&ci<PO.length-1?PO[ci+1]:rekod.peringkat;DB.murid[i].peringkat=next;}
+  else{DB.murid[i].peringkat=rekod.peringkat;DB.murid[i].mukaSurat=rekod.ke;DB.murid[i].jenis=rekod.jenis;DB.murid[i].iqraLabel=rekod.iqraLabel;}
+  DB.murid[i].tarihKemaskini=new Date().toISOString();
+}
+
+function localKhatamMurid(khatam){
+  const i=DB.murid.findIndex(m=>m.id===khatam.muridId);if(i<0)return;
+  DB.murid[i].peringkat='Khatam';DB.murid[i].bilKhatam=khatam.bilangan;DB.murid[i].mukaSurat=604;
+}
+
+// Helper: semak sama ada tarikh adalah hari persekolahan (Isnin-Jumaat)
+function isHariSekolah(date){
+  const day=date.getDay(); // 0=Ahad,1=Isnin,...,5=Jumaat,6=Sabtu
+  return day>=1&&day<=5;
+}
+
+// Dapatkan 5 hari persekolahan lepas (Isnin-Jumaat sahaja)
+function get5HariSekolah(){
+  const hari=[];
+  let d=new Date();
+  let count=0;
+  // Ambil 7 hari lepas dan tapis hari persekolahan
+  for(let i=0;i<14&&hari.length<5;i++){
+    const t=new Date(d);
+    t.setDate(d.getDate()-i);
+    if(isHariSekolah(t)) hari.unshift(t);
+  }
+  return hari;
+}
+
+function buildLocalDashboard(){
+  // Tapis mengikut kelas guru (jika bukan admin)
+  const isAdmin=CU?.peranan==='admin';
+  const guruKelas=CU?.darjah&&CU?.kelas?{darjah:CU.darjah,kelas:CU.kelas}:null;
+
+  let aktif=DB.murid.filter(m=>m.status==='Aktif');
+  let rekodAll=DB.rekod;
+
+  // Guru hanya nampak kelas mereka
+  if(!isAdmin&&guruKelas){
+    aktif=aktif.filter(m=>m.darjah===guruKelas.darjah&&m.kelas===guruKelas.kelas);
+    rekodAll=rekodAll.filter(r=>r.darjah===guruKelas.darjah&&r.kelas===guruKelas.kelas);
+  } else if(!isAdmin&&CU?.id){
+    // Guru tanpa kelas tetap — tapis rekod guru sendiri
+    rekodAll=rekodAll.filter(r=>r.guruId===CU.id);
+  }
+
+  const today=new Date().toDateString();
+  const sesiHari=rekodAll.filter(r=>new Date(r.tarikh).toDateString()===today).length;
+
+  // Amaran — kira hari persekolahan sahaja (bukan hari kalendar)
+  const alertCutoff=new Date();alertCutoff.setDate(alertCutoff.getDate()-10); // ~2 minggu persekolahan
+  const alerts=aktif.filter(m=>{
+    const rs=rekodAll.filter(r=>r.muridId===m.id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+    return!rs.length||new Date(rs[0].tarikh)<alertCutoff;
+  }).map(m=>{
+    const rs=rekodAll.filter(r=>r.muridId===m.id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+    const hariTiada=rs.length?Math.floor((Date.now()-new Date(rs[0].tarikh))/(864e5)):999;
+    return{...m,hariTiada};
+  });
+
+  // ── Carta Mingguan — 5 hari persekolahan sahaja ──
+  const hariSekolah5=get5HariSekolah();
+  const DAYS=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+  const mingguan=hariSekolah5.map(d=>{
+    const ds=d.toDateString();
+    const rs=rekodAll.filter(r=>new Date(r.tarikh).toDateString()===ds);
+    return{
+      hari:DAYS[d.getDay()]+' '+d.getDate(),
+      tarikh:fmtD(d.toISOString()),
+      sesi:rs.length,
+      muka:rs.reduce((a,r)=>a+(r.jumlah||0),0),
+      muridUnik:new Set(rs.map(r=>r.muridId)).size
+    };
+  });
+
+  // ── Carta Bulanan ──
+  const yr=new Date().getFullYear();
+  const bulanan=BL.map((b,m)=>{
+    const rs=rekodAll.filter(r=>{const d=new Date(r.tarikh);return d.getFullYear()===yr&&d.getMonth()===m;});
+    return{bulan:b,sesi:rs.length,muka:rs.reduce((a,r)=>a+(r.jumlah||0),0)};
+  });
+
+  // Info kelas untuk guru
+  const kelasInfo=guruKelas?` — ${guruKelas.darjah} ${guruKelas.kelas}`:'';
+
+  return{ok:true,dashboard:{
+    jumlahMurid:aktif.length,sesiHari,
+    jumlahAlert:alerts.length,
+    jumlahKhatam:aktif.reduce((a,m)=>a+(m.bilKhatam||0),0),
+    sedangIqra:aktif.filter(m=>m.peringkat!=='Al-Quran'&&m.peringkat!=='Khatam').length,
+    sedangQuran:aktif.filter(m=>m.peringkat==='Al-Quran').length,
+    mingguan,bulanan,
+    alerts:alerts.slice(0,10),
+    rekodTerkini:[...rekodAll].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh)).slice(0,10),
+    kelasInfo,isAdmin
+  }};
+}
+
+function queueSync(action,body){pendingSync.push({action,body,ts:Date.now()});localStorage.setItem('skdk_pending',JSON.stringify(pendingSync));}
+function saveLocal(){localStorage.setItem('skdk_db',JSON.stringify(DB));}
+
+// ── Buang duplikat murid (sama nama + darjah + kelas) ──
+function dedupMurid(){
+  const seen=new Set();
+  const unik=[];
+  const idMap={}; // peta: nama_darjah_kelas → ID yang dikekalkan
+  let buang=0;
+
+  // Utamakan murid yang ada rekod
+  const dgRekod=new Set(DB.rekod.map(r=>r.muridId));
+  const sorted=[...DB.murid].sort((a,b)=>{
+    const aR=dgRekod.has(a.id)?1:0;
+    const bR=dgRekod.has(b.id)?1:0;
+    return bR-aR;
+  });
+
+  sorted.forEach(m=>{
+    const key=(m.nama||'').trim().toUpperCase()+'|'+(m.darjah||'')+'|'+(m.kelas||'');
+    if(!seen.has(key)&&m.nama){
+      seen.add(key);
+      unik.push(m);
+      idMap[key]=m.id; // catat ID yang dikekalkan
+    } else { buang++; }
+  });
+
+  if(buang>0){
+    DB.murid=unik;
+
+    // Kemaskini ID dalam kumpulan supaya tidak broken selepas dedup
+    if(DB.kumpulan&&DB.kumpulan.length){
+      DB.kumpulan.forEach(kp=>{
+        if(!kp.muridNama||!kp.muridNama.length) return;
+        // Rebuild muridIds dari nama
+        kp.muridIds=kp.muridNama.map(nm=>{
+          // Cari ID baharu berdasarkan nama + darjah + kelas kumpulan
+          const key=nm+'|'+(kp.darjah||'')+'|'+(kp.kelas||'');
+          return idMap[key]||null;
+        }).filter(Boolean);
+      });
+    }
+    saveLocal();
+  }
+  return buang;
+}
+
+async function syncData(){
+  if(!API_URL){showT('Tiada URL backend. Pergi Tetapan untuk set URL.','warn');return;}
+  document.getElementById('syncDot').classList.add('syncing');
+  document.getElementById('syncText').textContent='Syncing...';
+  document.getElementById('syncBanner').classList.add('show');
+
+  try{
+    // Langkah 1: Semak data di server
+    const semak=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
+    const serverMurid=semak.ok?(semak.data.murid||[]):[];
+
+    // Langkah 2: Jika server kosong, upload murid tempatan
+    if(serverMurid.length===0 && DB.murid.length>0){
+      showT('📤 Server kosong — menghantar '+DB.murid.length+' murid...','',8000);
+      let berjaya=0,gagal=0;
+      for(const m of DB.murid){
+        try{const r=await api('addMurid',{murid:m});if(r.ok)berjaya++;else gagal++;}catch(e){gagal++;}
+      }
+      showT('✅ '+berjaya+' murid dihantar ke Google Sheets'+(gagal?' ('+gagal+' gagal)':''),'ok',5000);
+    }
+
+    // Langkah 3: Hantar guru baharu ke server
+    const serverGuru=semak.ok?(semak.data.guru||[]):[];
+    const localGuru=DB.guru.filter(g=>g.peranan==='guru');
+    let guruBaru=0;
+    for(const g of localGuru){
+      const sudahAda=serverGuru.find(sg=>sg.email===g.email||sg.email===g.username);
+      if(!sudahAda){try{const r=await api('addGuru',{guru:g});if(r.ok)guruBaru++;}catch(e){}}
+    }
+    if(guruBaru>0) showT('✅ '+guruBaru+' guru baharu dihantar','ok',3000);
+
+    // Langkah 4: Hantar rekod dalam queue
+    let rekodHantar=0;
+    for(const item of [...pendingSync]){
+      const res=await api(item.action,item.body);
+      if(res.ok){pendingSync=pendingSync.filter(p=>p.ts!==item.ts);rekodHantar++;}
+    }
+    localStorage.setItem('skdk_pending',JSON.stringify(pendingSync));
+
+    // Langkah 5: Refresh dari server — GANTIKAN tempatan dengan server (bukan tambah)
+    const fresh=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
+    if(fresh.ok){
+      // Guna data server sebagai sumber kebenaran
+      if(fresh.data.murid&&fresh.data.murid.length>0) DB.murid=fresh.data.murid;
+      if(fresh.data.guru&&fresh.data.guru.length>0) DB.guru=fresh.data.guru;
+      if(fresh.data.rekod) DB.rekod=fresh.data.rekod;
+      if(fresh.data.khatam) DB.khatam=fresh.data.khatam;
+      // Sentiasa dedup selepas ambil dari server
+      const buang=dedupMurid();
+      if(buang>0) showT('🧹 '+buang+' rekod duplikat dibuang','warn',3000);
+      saveLocal();
+    }
+
+    IS_OFFLINE=false;
+    localStorage.removeItem('skdk_offline');
+    document.getElementById('syncBanner').classList.remove('show');
+    updateSyncStatus(true);
+    const msg=rekodHantar>0?'✅ Sync berjaya! '+rekodHantar+' rekod dihantar.':'✅ Data terkini dengan Google Sheets!';
+    showT(msg,'ok',4000);
+    renderDash();renderMurid();renderGuru();renderAlert();renderKhatamHist();renderRekodToday();
+
+  }catch(e){
+    showT('❌ Sync gagal: '+e.message,'err');
+    updateSyncStatus(false);
+  }
+  document.getElementById('syncDot').classList.remove('syncing');
+  document.getElementById('syncText').textContent=IS_OFFLINE?'Offline':'Tersambung';
+}
+
+function updateSyncStatus(online){
+  document.getElementById('syncDot').className='sync-dot'+(online?'':' syncing');
+  document.getElementById('syncText').textContent=online?'Tersambung':'Offline';
+  document.getElementById('apiStatus').className='api-status '+(online?'online':'offline');
+  document.getElementById('apiDot').className='api-dot '+(online?'dot-online':'dot-offline');
+  document.getElementById('apiStatusText').textContent=online?'Tersambung ke Google Sheets':'Mod Offline';
+}
+
+/* ═══════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════ */
+
+
+/* ═══════════════════════════════════════
+   INIT
+═══════════════════════════════════════ */
+// Sync GURU_SKDK ke DB.guru — jalankan setiap kali app dimuat
+function seedGuruSKDK(){
+  if(!DB.guru) DB.guru=[];
+  let added=0;
+  GURU_SKDK.forEach(g=>{
+    // Setiap guru boleh ada berbilang kelas — cipta entry untuk setiap kelas
+    g.kelas.forEach(kl=>{
+      // ID unik per guru-kelas: e.g. GS001_D1 untuk Darjah 1
+      const kelasId = g.id+'_'+kl.darjah.replace('Darjah ','D');
+      const sudahAda = DB.guru.find(x=>x.id===kelasId||x.id===g.id);
+      if(!sudahAda){
+        DB.guru.push({
+          id: kelasId,
+          guruId: g.id,          // ID guru sebenar (untuk cross-reference)
+          nama: g.nama,
+          singkat: g.singkat,
+          email: g.id.toLowerCase(),
+          username: g.id.toLowerCase(),
+          peranan: 'guru',
+          darjah: kl.darjah,
+          kelas: kl.kelas,
+          status: 'Aktif'
+        });
+        added++;
+      } else if(sudahAda && (!sudahAda.darjah||!sudahAda.kelas)){
+        // Kemaskini jika entry ada tapi tiada darjah/kelas
+        sudahAda.darjah = kl.darjah;
+        sudahAda.kelas = kl.kelas;
+        sudahAda.singkat = g.singkat;
+        sudahAda.guruId = g.id;
+      }
+    });
+  });
+  if(added>0){ saveLocal(); }
+  return added;
+}
+
+function initApp(){
+  // Buang duplikat setiap kali app dimuat
+  dedupMurid();
+  // Pastikan semua guru SKDK ada dalam DB
+  seedGuruSKDK();
+  renderDash();populateSels();renderMurid();renderGuru();renderAlert();renderKhatamHist();renderRekodToday();renderTahunPage();
+  const now=new Date();
+  document.getElementById('ktT').value=now.toISOString().split('T')[0];
+  document.getElementById('ktTh').value=now.getFullYear();
+  document.getElementById('exTh').value=now.getFullYear();
+  updateAlertBadge();
+}
+
+/* ═══════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════ */
+const PM={dash:'Dashboard',rekod:'Rekod Bacaan',khatam:'Rekod Khatam',laporan:'Laporan & Analisis',alert:'Amaran Murid',murid:'Pengurusan Murid',guru:'Pengurusan Guru',tahun:'Tukar Tahun',export:'Export Data',tetapan:'Tetapan'};
+
+function navTo(s,el){
+  // "Guru" terus ke Laporan tab Per Guru
+  if(s==='guru'){
+    navTo('laporan',el);
+    activeLapTab='G';
+    document.querySelectorAll('.tab-b').forEach(b=>{
+      b.classList.toggle('active', b.textContent.includes('Per Guru'));
+    });
+    renderLapG();
+    return;
+  }
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+  const sc=document.getElementById('sc-'+s);if(sc)sc.classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('pageT').textContent=PM[s]||s;
+  document.getElementById('pageS').textContent=SKDK;
+  closeSB();
+  if(s==='dash')renderDash();
+  if(s==='rekod'){populateSels();renderRekodToday();}
+  if(s==='laporan')renderLap();
+  if(s==='alert')renderAlert();
+  if(s==='khatam'){populateSels();renderKhatamHist();}
+  if(s==='murid'){renderMurid();populateSels();}
+  if(s==='tahun')renderTahunPage();
+  if(s==='tetapan')updateStatsTetapan();
+}
+
+function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('ov').classList.add('show');}
+function closeSB(){document.getElementById('sidebar').classList.remove('open');document.getElementById('ov').classList.remove('show');}
+
+/* ═══════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════ */
+function getJuz(m){for(let j=30;j>=1;j--)if(m>=JS[j])return j;return 1;}
+function getRef(j,p){return j==='Iqra Baru'?IB[p]:IL[p];}
+function genId(pfx){return pfx+Date.now().toString().slice(-8)+Math.random().toString(36).slice(2,5).toUpperCase();}
+function ini(n){return n.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();}
+function fmtD(iso){if(!iso)return'—';const d=new Date(iso);return d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();}
+function fmtT(iso){if(!iso)return'';const d=new Date(iso);return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');}
+function dayDiff(iso){return Math.floor((Date.now()-new Date(iso).getTime())/864e5);}
+function kColor(k){if(!k)return'bgr';if(k.startsWith('Cemerlang'))return'bg';if(k.startsWith('Baik'))return'bb';if(k.startsWith('Perlu'))return'bor';if(k.startsWith('Khatam'))return'bb';return'br';}
+function getMyMurid(){
+  if(CU?.peranan==='admin') return DB.murid.filter(m=>m.status==='Aktif');
+  const d=CU?.darjah, k=CU?.kelas;
+  if(d&&k) return DB.murid.filter(m=>m.status==='Aktif'&&m.darjah===d&&m.kelas===k);
+  const guruData=GURU_SKDK.find(g=>g.id===CU?.id);
+  if(guruData) return DB.murid.filter(m=>m.status==='Aktif'&&guruData.kelas.some(kl=>kl.darjah===m.darjah&&kl.kelas===m.kelas));
+  return DB.murid.filter(m=>m.status==='Aktif'&&m.guruId===CU?.id);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ═══════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════ */
+async function renderDash(){
+  const r=await api('getDashboard',{userId:CU?.id,peranan:CU?.peranan});
+  if(!r.ok)return;
+  const d=r.dashboard;
+
+  // Tajuk dashboard — tunjuk kelas jika guru
+  const kelasLabel=d.kelasInfo||'';
+  document.getElementById('pageS').textContent=SKDK+(kelasLabel?' | '+kelasLabel:'');
+
+  document.getElementById('dashStats').innerHTML=`
+    <div class="sc ag"><div class="si">👨‍🎓</div><div class="sv">${d.jumlahMurid}</div><div class="sl">Murid Aktif${kelasLabel}</div></div>
+    <div class="sc ab"><div class="si">📋</div><div class="sv">${d.sesiHari}</div><div class="sl">Sesi Hari Ini</div></div>
+    <div class="sc ar"><div class="si">⚠️</div><div class="sv">${d.jumlahAlert}</div><div class="sl">Perlu Perhatian</div></div>
+    <div class="sc ao"><div class="si">🏆</div><div class="sv">${d.jumlahKhatam}</div><div class="sl">Jumlah Khatam</div></div>
+    <div class="sc ap"><div class="si">📚</div><div class="sv">${d.sedangIqra}</div><div class="sl">Sedang Iqra</div></div>
+    <div class="sc ag"><div class="si">📖</div><div class="sv">${d.sedangQuran}</div><div class="sl">Baca Al-Quran</div></div>`;
+
+  // ── Carta Mingguan — Hari Persekolahan Sahaja (Isnin-Jumaat) ──
+  const mx=Math.max(...d.mingguan.map(x=>x.sesi),1);
+  const jumlahMinggu=d.mingguan.reduce((a,x)=>a+x.sesi,0);
+  const muridMinggu=d.mingguan.reduce((a,x)=>a+(x.muridUnik||0),0);
+  document.getElementById('wkChart').innerHTML=`
+    <div class="mbc">${d.mingguan.map(x=>`
+      <div class="mb" style="height:${Math.max(4,x.sesi/mx*110)}px;background:${x.sesi?'var(--g3)':'var(--gray2)'};opacity:${x.sesi?1:.4}"
+        data-t="${x.hari} (${x.tarikh||''}): ${x.sesi} sesi${x.muridUnik?' | '+x.muridUnik+' murid':''}"></div>`).join('')}</div>
+    <div class="bls">${d.mingguan.map(x=>`<div class="bl">${x.hari.split(' ')[0]}<br>${x.hari.split(' ')[1]||''}</div>`).join('')}</div>
+    <div style="font-size:11px;color:var(--gray4);margin-top:6px">
+      ${jumlahMinggu} sesi minggu ini • Isnin–Jumaat sahaja
+    </div>`;
+
+  // ── Carta Bulanan ──
+  const mx2=Math.max(...d.bulanan.map(x=>x.sesi),1);
+  document.getElementById('moChart').innerHTML=`
+    <div class="mbc">${d.bulanan.map(x=>`<div class="mb" style="height:${Math.max(4,x.sesi/mx2*110)}px;background:var(--g3);opacity:${x.sesi?1:.3}" data-t="${x.bulan}: ${x.sesi} sesi"></div>`).join('')}</div>
+    <div class="bls">${d.bulanan.map(x=>`<div class="bl">${x.bulan}</div>`).join('')}</div>`;
+
+  // ── Amaran ──
+  document.getElementById('dashAlertCount').textContent=d.jumlahAlert;
+  const ae=document.getElementById('dashAlerts');
+  if(!d.alerts.length){
+    ae.innerHTML='<div class="es"><div class="ei">✅</div><p>Semua murid'+kelasLabel+' aktif!</p></div>';
+  } else {
+    ae.innerHTML=d.alerts.map(m=>`
+      <div class="alert-item ${m.hariTiada>14?'':'warn'}">
+        <div class="ai-ico">${m.hariTiada>14?'🔴':'⚠️'}</div>
+        <div class="ai-txt">
+          <div class="ai-nm">${esc(m.nama)}</div>
+          <div class="ai-dt">${m.darjah} ${m.kelas} • ${m.peringkat} • ${m.hariTiada<999?m.hariTiada+' hari tiada rekod':'Belum ada rekod'}</div>
+        </div>
+        <button class="btn btn-sm btn-p" style="padding:4px 8px;font-size:11px" onclick="rkCepat('${m.id}')">📋</button>
+      </div>`).join('');
+  }
+
+  // ── Rekod Terkini ──
+  const re=document.getElementById('dashRecent');
+  if(!d.rekodTerkini.length){re.innerHTML='<div class="es"><p>Tiada rekod lagi</p></div>';}
+  else re.innerHTML=`<table class="dt"><tbody>${d.rekodTerkini.map(r=>`
+    <tr><td class="nc" style="font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.muridNama)}</td>
+    <td style="font-size:11px">${r.darjah} ${r.kelas}</td>
+    <td><span class="bdg ${kColor(r.kualiti)}" style="font-size:10px">${(r.kualiti||'').split(' ')[0]}</span></td>
+    <td style="font-size:11px">${fmtD(r.tarikh)}</td></tr>`).join('')}</tbody></table>`;
+
+  updateAlertBadge(d.jumlahAlert);
+}
+
+function updateAlertBadge(count){
+  if(count===undefined){
+    const cutoff=new Date();cutoff.setDate(cutoff.getDate()-alertDays);
+    count=getMyMurid().filter(m=>{const rs=DB.rekod.filter(r=>r.muridId===m.id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));return!rs.length||new Date(rs[0].tarikh)<cutoff;}).length;
+  }
+  const b=document.getElementById('alertBadge');
+  b.textContent=count;b.style.display=count>0?'':'none';
+}
+
+/* ═══════════════════════════════════════
+   REKOD BACAAN
+═══════════════════════════════════════ */
+function rkJenis(j){
+  rkJenisVal=j;
+  ['jbB','jbL','jbQ'].forEach(id=>document.getElementById(id).className='jpb');
+  if(j==='Iqra Baru')document.getElementById('jbB').classList.add('ab');
+  else if(j==='Iqra Lama')document.getElementById('jbL').classList.add('al');
+  else document.getElementById('jbQ').classList.add('aq');
+  document.getElementById('rkPGrp').style.display=j==='Al-Quran'?'none':'';
+  if(j==='Al-Quran'){document.getElementById('rkP').value='Al-Quran';}
+  rkRange();
+}
+
+// ID murid yang sedang dipilih (global)
+let rkMuridId = '';
+
+function rkFiltMurid(){
+  const d=document.getElementById('rkD').value;
+  const k=document.getElementById('rkK').value;
+  const cari=(document.getElementById('rkCari')?.value||'').toLowerCase().trim();
+
+  let list=getMyMurid();
+  if(d) list=list.filter(m=>m.darjah===d);
+  if(k) list=list.filter(m=>m.kelas===k);
+  if(cari) list=list.filter(m=>m.nama.toLowerCase().includes(cari));
+
+  // Kumpulan filter chips
+  const kfEl=document.getElementById('kumpulanFilter');
+  if(kfEl){
+    const kumpKelas=(DB.kumpulan||[]).filter(kp=>{
+      if(d&&kp.darjah!==d)return false;
+      if(k&&kp.kelas!==k)return false;
+      return kp.muridIds&&kp.muridIds.length>0;
+    });
+    kfEl.innerHTML=kumpKelas.length
+      ? '<span style="font-size:11px;color:var(--gray5);align-self:center;padding:2px 0">Kumpulan:</span>'+
+        kumpKelas.map(kp=>`<span class="fchip" style="font-size:11px;padding:4px 10px;background:${kp.warna||'#e3f2fd'}" onclick="rkKumpFilter('${kp.id}',this)">${esc(kp.nama)}</span>`).join('')
+      : '';
+  }
+
+  renderMuridList(list);
+}
+
+function rkKumpFilter(kumpId, el){
+  const chips=document.querySelectorAll('#kumpulanFilter .fchip');
+  const wasActive=el.classList.contains('active');
+  chips.forEach(c=>c.classList.remove('active'));
+  if(wasActive){ rkFiltMurid(); return; }
+  el.classList.add('active');
+
+  const kp=(DB.kumpulan||[]).find(x=>x.id===kumpId);
+  if(!kp){ showT('Kumpulan tidak dijumpai','err'); return; }
+
+  const allMurid=getMyMurid();
+
+  // Cuba cari mengikut ID dahulu
+  let list=allMurid.filter(m=>(kp.muridIds||[]).includes(m.id));
+
+  // Jika ID tidak sepadan (berlaku selepas dedup), cari mengikut NAMA
+  if(!list.length && kp.muridNama && kp.muridNama.length){
+    list=allMurid.filter(m=>(kp.muridNama).includes(m.nama.trim().toUpperCase()));
+    // Kemaskini ID supaya padanan seterusnya tepat
+    if(list.length){
+      kp.muridIds=list.map(m=>m.id);
+      saveLocal();
+    }
+  }
+
+  if(!list.length){
+    showT('Kumpulan "'+kp.nama+'" kosong. Pergi Laporan → Kumpulan Bacaan → assign semula murid.','warn',5000);
+    renderMuridList(allMurid);
+    return;
+  }
+
+  renderMuridList(list);
+  showT('Kumpulan '+kp.nama+' — '+list.length+' murid','',2000);
+}
+
+function renderMuridList(list){
+  const el=document.getElementById('rkMuridList');
+  if(!el)return;
+
+  if(!list||!list.length){
+    el.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);font-size:13px">Tiada murid dijumpai</div>';
+    return;
+  }
+
+  // Sort: murid terpilih dahulu, kemudian ikut nama
+  const sorted=[...list].sort((a,b)=>{
+    if(a.id===rkMuridId)return -1;
+    if(b.id===rkMuridId)return 1;
+    return a.nama.localeCompare(b.nama);
+  });
+
+  el.innerHTML=sorted.map(m=>{
+    const inisial=m.nama.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const rs=DB.rekod.filter(r=>r.muridId===m.id);
+    const lr=[...rs].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh))[0];
+    const days=lr?dayDiff(lr.tarikh):999;
+    const warn=days>10;
+    const selected=m.id===rkMuridId;
+    const bColor=m.peringkat==='Khatam'?'background:#fff3cd;color:#856404':m.peringkat==='Al-Quran'?'background:#ede9fe;color:#5b21b6':'background:#dcfce7;color:#14532d';
+    const warnColor=warn?'background:#fee2e2;color:#991b1b':bColor;
+    const shortPeringkat=m.peringkat.replace('Iqra ','I').replace('Al-Quran','Quran').replace('Khatam','KTM');
+    return`<div class="mk-item${selected?' selected':''}" id="mki_${m.id}" onclick="rkPilihMurid('${m.id}')">
+      <div class="mk-av" style="${selected?'background:var(--g2);color:white;':''}">${inisial}</div>
+      <div class="mk-info">
+        <div class="mk-nama">${esc(m.nama)}</div>
+        <div class="mk-sub">${m.peringkat} · M/S <b>${m.mukaSurat}</b> · ${lr?days+' hari lalu':'Belum ada rekod'}</div>
+      </div>
+      <span class="mk-badge" style="${warnColor}">${shortPeringkat}</span>
+    </div>`;
+  }).join('');
+}
+
+function rkPilihMurid(id){
+  rkMuridId=id;
+  // Update hidden select
+  const sel=document.getElementById('rkM');
+  if(sel) sel.value=id;
+
+  // Highlight dalam list — guna ID elemen
+  document.querySelectorAll('.mk-item').forEach(el=>{
+    const isSelected=el.id==='mki_'+id;
+    el.classList.toggle('selected',isSelected);
+    const av=el.querySelector('.mk-av');
+    if(av) av.style.cssText=isSelected?'background:var(--g2);color:white;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0':'';
+  });
+
+  // Tunjuk panel murid terpilih
+  const m=DB.murid.find(x=>x.id===id);
+  if(!m)return;
+
+  const pilihEl=document.getElementById('rkMuridPilih');
+  const namEl=document.getElementById('rkMuridNama');
+  const infEl=document.getElementById('rkMuridInfo');
+  if(pilihEl) pilihEl.style.display='flex';
+  if(namEl) namEl.textContent=m.nama;
+  const rs=[...DB.rekod.filter(r=>r.muridId===id)].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+  const lr=rs[0];
+  if(infEl) infEl.textContent=m.peringkat+' · M/S '+m.mukaSurat+(lr?' · Terakhir: '+fmtD(lr.tarikh)+' ('+dayDiff(lr.tarikh)+' hari lalu)':'· Belum ada rekod');
+
+  // Simpan sebagai murid terakhir
+  lastMuridId=id;
+  localStorage.setItem('skdk_last_murid',id);
+
+  // Trigger rkOnMurid untuk isi semua field form
+  rkOnMurid();
+
+  // Scroll selected item ke atas senarai
+  const selEl=document.getElementById('mki_'+id);
+  if(selEl) selEl.scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+
+function rkClearMurid(){
+  rkMuridId='';
+  const sel=document.getElementById('rkM');
+  if(sel) sel.value='';
+  const pilihEl=document.getElementById('rkMuridPilih');
+  if(pilihEl) pilihEl.style.display='none';
+  const info=document.getElementById('rkInfo');
+  if(info) info.style.display='none';
+  const pw=document.getElementById('rkPW');
+  if(pw) pw.style.display='none';
+  document.getElementById('rkPL').textContent='';
+  // Refresh list
+  rkFiltMurid();
+}
+
+function rkOnMurid(){
+  const id=rkMuridId||document.getElementById('rkM')?.value||'';
+  const m=DB.murid.find(x=>x.id===id);
+  const info=document.getElementById('rkInfo');
+  if(!m){info.style.display='none';document.getElementById('rkPW').style.display='none';return;}
+  if(m.jenis)rkJenis(m.jenis);
+  if(m.peringkat&&m.peringkat!=='Khatam')document.getElementById('rkP').value=m.peringkat==='Al-Quran'?'Al-Quran':m.peringkat;
+  rkRange();
+  document.getElementById('rkDr').value=m.mukaSurat||1;
+  document.getElementById('rkKe').value='';
+  const rs=DB.rekod.filter(r=>r.muridId===id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+  const lr=rs[0];
+  info.innerHTML=`📌 <b>${m.peringkat}</b> | ${m.iqraLabel||'—'} | M/S: <b>${m.mukaSurat}</b>${lr?' | Terakhir: '+fmtD(lr.tarikh):''}${(m.bilKhatam||0)>0?' | 🏆 '+m.bilKhatam+'x':''}`;
+  info.style.display='';
+  rkProgress(m);
+}
+
+function rkRange(){
+  const p=document.getElementById('rkP').value;
+  const rh=document.getElementById('rkRH');
+  const il=document.getElementById('rkIL');
+  const fd=document.getElementById('rkDr'),fe=document.getElementById('rkKe');
+  if(rkJenisVal==='Al-Quran'||p==='Al-Quran'){rh.textContent='(1-604)';fd.min=1;fd.max=604;fe.min=1;fe.max=604;il.value='Al-Quran (Mushaf)';return;}
+  const ref=getRef(rkJenisVal,p);
+  if(ref){rh.textContent='('+ref.dari+'-'+ref.ke+')';fd.min=ref.dari;fd.max=ref.ke;fe.min=ref.dari;fe.max=ref.ke;il.value=p+(ref.j?' ('+ref.j+')':' ('+rkJenisVal+')');}
+}
+
+function rkProgress(m){
+  const pw=document.getElementById('rkPW'),pf=document.getElementById('rkPF'),pl=document.getElementById('rkPL');
+  const p=m.peringkat,muka=m.mukaSurat||1,j=m.jenis;
+  if(p==='Khatam'){pf.style.width='100%';pl.textContent='🏆 KHATAM!';pw.style.display='';return;}
+  if(p==='Al-Quran'||j==='Al-Quran'){const pct=Math.round((muka/604)*100);pf.style.width=pct+'%';pl.textContent='Al-Quran: M/S '+muka+'/604 | Juzuk '+getJuz(muka)+' ('+pct+'%)';pw.style.display='';return;}
+  const ref=j==='Iqra Baru'?IB:IL;if(!ref[p]){pw.style.display='none';return;}
+  let tot=0,done=0;const ord=['Iqra 1','Iqra 2','Iqra 3','Iqra 4','Iqra 5','Iqra 6'];
+  ord.forEach(pp=>{const r=ref[pp];if(!r)return;const pages=r.ke-r.dari+1;tot+=pages;if(ord.indexOf(pp)<ord.indexOf(p))done+=pages;else if(pp===p)done+=Math.max(0,muka-r.dari);});
+  const pct=Math.min(100,Math.round((done/tot)*100));
+  pf.style.width=pct+'%';pl.textContent='Kemajuan: '+done+'/'+tot+' m/s ('+pct+'%)';pw.style.display='';
+}
+
+function rkHitung(){
+  const p=document.getElementById('rkP').value;
+  const dari=parseInt(document.getElementById('rkDr').value);
+  const ke=parseInt(document.getElementById('rkKe').value);
+  const wb=document.getElementById('rkWB'),jb=document.getElementById('rkJB'),jh=document.getElementById('rkJH');
+  jb.style.display='none';wb.style.display='none';
+  if(dari&&ke&&ke>=dari){
+    jh.textContent='✔ Jumlah: '+(ke-dari+1)+' muka surat';
+    if(rkJenisVal==='Al-Quran'||p==='Al-Quran'){const jD=getJuz(dari),jK=getJuz(ke);jb.textContent=jD===jK?'📗 Juzuk '+jD:'📗 Juzuk '+jD+' → Juzuk '+jK;jb.style.display='';}
+    let max=9999,min=1;
+    if(rkJenisVal!=='Al-Quran'&&p!=='Al-Quran'){const ref=getRef(rkJenisVal,p);if(ref){max=ref.ke;min=ref.dari;}}else max=604;
+    if(ke>max||dari<min){wb.textContent='⚠️ Di luar julat ('+min+'-'+max+')';wb.style.display='';}
+  }else jh.textContent='';
+}
+
+function rkQ(k,el){rkQVal=k;document.querySelectorAll('.qb').forEach(b=>b.classList.remove('active'));el.classList.add('active');}
+function rkTglChk(id){const el=document.getElementById(id);if(el.classList.contains('on')){el.classList.remove('on');el.textContent='';}else{el.classList.add('on');el.textContent='✓';}}
+
+// Ingat murid terakhir direkod
+let lastMuridId = localStorage.getItem('skdk_last_murid')||'';
+
+async function rkSimpan(){
+  const muridId=rkMuridId||document.getElementById('rkM')?.value||'';
+  if(!muridId){showT('Sila pilih murid','err');return;}
+  const dari=parseInt(document.getElementById('rkDr').value);
+  const ke=parseInt(document.getElementById('rkKe').value);
+  if(!dari||!ke||ke<dari){showT('Muka surat tidak sah','err');return;}
+  const m=DB.murid.find(x=>x.id===muridId);if(!m)return;
+  const peringkat=document.getElementById('rkP').value;
+  const iqraLabel=document.getElementById('rkIL').value;
+  const now=new Date();
+  let label=iqraLabel;
+  if(peringkat==='Al-Quran'||rkJenisVal==='Al-Quran'){const jD=getJuz(dari),jK=getJuz(ke);label=jD===jK?'Al-Quran (Juzuk '+jD+')':'Al-Quran (Juzuk '+jD+'-'+jK+')';}
+  const rekod={
+    muridId,muridNama:m.nama,darjah:m.darjah,kelas:m.kelas,
+    guruId:CU?.id||'',guru:document.getElementById('rkGr').value||(CU?.nama||''),
+    jenis:rkJenisVal,peringkat,iqraLabel:label,
+    dari,ke,jumlah:ke-dari+1,kualiti:rkQVal,
+    catatan:document.getElementById('rkCt').value,
+    kemaskini:document.getElementById('rkC1').classList.contains('on'),
+    naikPeringkat:document.getElementById('rkC2').classList.contains('on'),
+    tarikh:now.toISOString()
+  };
+  const r=await api('addRekod',{rekod});
+  if(!r.ok){showT(r.msg||'Gagal simpan','err');return;}
+
+  // Simpan murid terakhir supaya senang isi rekod seterusnya
+  lastMuridId=muridId;
+  localStorage.setItem('skdk_last_murid',muridId);
+
+  // Kemaskini DB tempatan
+  DB.rekod.push({id:r.id||genId('R'),...rekod});
+  const idx=DB.murid.findIndex(x=>x.id===muridId);
+  if(rekod.naikPeringkat&&idx>=0){
+    const ci=PO.indexOf(peringkat);const next=ci>=0&&ci<PO.length-1?PO[ci+1]:peringkat;
+    let nm=1,nl=next;
+    if(next==='Al-Quran'){nl='Al-Quran (Juzuk 1)';DB.murid[idx].jenis='Al-Quran';}
+    else if(next!=='Khatam'){const ref=getRef(rkJenisVal,next);if(ref){nm=ref.dari;nl=next+' ('+(ref.j||rkJenisVal)+')';}}
+    DB.murid[idx].peringkat=next;DB.murid[idx].iqraLabel=nl;DB.murid[idx].mukaSurat=nm;
+  }else if(rekod.kemaskini&&idx>=0){
+    DB.murid[idx].peringkat=peringkat;DB.murid[idx].iqraLabel=label;DB.murid[idx].mukaSurat=ke;DB.murid[idx].jenis=rkJenisVal;
+  }
+  if(idx>=0) DB.murid[idx].tarihKemaskini=now.toISOString();
+  saveLocal();
+
+  // Reset muka surat sahaja — kekal murid yang sama
+  document.getElementById('rkDr').value='';
+  document.getElementById('rkKe').value='';
+  document.getElementById('rkJH').textContent='';
+  document.getElementById('rkJB').style.display='none';
+  document.getElementById('rkWB').style.display='none';
+
+  // Refresh info murid (tunjuk muka surat terkini)
+  if(rekod.kemaskini||rekod.naikPeringkat) rkOnMurid();
+
+  showT('✅ Rekod disimpan!'+(rekod.naikPeringkat?' 🎉 Naik peringkat!':''),'ok',2500);
+  renderRekodToday();renderDash();updateAlertBadge();
+}
+
+function renderRekodToday(){
+  const today=new Date().toDateString();
+  const rs=[...DB.rekod].filter(r=>new Date(r.tarikh).toDateString()===today)
+    .filter(r=>CU?.peranan==='admin'||r.guruId===CU?.id)
+    .sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+  document.getElementById('todayCnt').textContent=rs.length;
+  const el=document.getElementById('todayList');
+  if(!rs.length){el.innerHTML='<div class="es" style="padding:20px"><p>Tiada rekod hari ini</p></div>';return;}
+  el.innerHTML=`<table class="dt"><tbody>${rs.map(r=>`<tr><td class="nc">${esc(r.muridNama)}</td><td style="font-size:12px">${r.peringkat}</td><td style="font-size:12px">${r.dari}-${r.ke}</td><td><span class="bdg ${kColor(r.kualiti)}" style="font-size:10px">${(r.kualiti||'').split(' ')[0]}</span></td><td style="font-size:11px">${fmtT(r.tarikh)}</td></tr>`).join('')}</tbody></table>`;
+}
+
+/* ═══════════════════════════════════════
+   KHATAM
+═══════════════════════════════════════ */
+function ktOnMurid(){
+  const id=document.getElementById('ktM').value;
+  const m=DB.murid.find(x=>x.id===id);
+  const d=document.getElementById('ktDisp');
+  if(!m){d.style.display='none';return;}
+  document.getElementById('ktNum').textContent=m.bilKhatam||0;
+  document.getElementById('ktNext').textContent=(m.bilKhatam||0)+1;
+  d.style.display='';
+}
+
+async function ktSahkan(){
+  const id=document.getElementById('ktM').value;
+  if(!id){showT('Sila pilih murid','err');return;}
+  const m=DB.murid.find(x=>x.id===id);if(!m)return;
+  if(!confirm('Sahkan '+m.nama+' telah khatam Al-Quran?'))return;
+  const kBaru=(m.bilKhatam||0)+1;
+  const tahun=parseInt(document.getElementById('ktTh').value)||new Date().getFullYear();
+  const r=await api('addKhatam',{khatam:{
+    muridId:id,muridNama:m.nama,darjah:m.darjah,kelas:m.kelas,
+    bilangan:kBaru,tahun,tarikh:document.getElementById('ktT').value||new Date().toISOString().split('T')[0],
+    catatan:document.getElementById('ktCt').value,
+    guru:document.getElementById('ktGr').value||(CU?.nama||''),guruId:CU?.id||''
+  }});
+  if(!r.ok){showT(r.msg||'Gagal','err');return;}
+  document.getElementById('ktM').value='';document.getElementById('ktDisp').style.display='none';document.getElementById('ktCt').value='';
+  showT('🏆 MasyaAllah! '+m.nama+' Khatam ke-'+kBaru+' ('+tahun+')!','ok',5000);
+  renderKhatamHist();renderDash();populateSels();
+}
+
+function renderKhatamHist(){
+  const list=[...DB.khatam].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+  const el=document.getElementById('ktHist');
+  if(!list.length){el.innerHTML='<div class="es"><div class="ei">🏆</div><p>Belum ada rekod khatam</p></div>';return;}
+  el.innerHTML=list.map(k=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray2)">
+      <div style="font-size:22px">🏆</div>
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:var(--gray8)">${esc(k.muridNama)}</div>
+        <div style="font-size:12px;color:var(--gray5);margin-top:2px">${k.darjah} ${k.kelas} • Tahun ${k.tahun} • ${fmtD(k.tarikh)}</div>
+        ${k.catatan?`<div style="font-size:11px;color:var(--gray4);font-style:italic">"${esc(k.catatan)}"</div>`:''}
+        <div style="font-size:11px;color:var(--gray4)">Guru: ${esc(k.guru||'—')}</div>
+      </div>
+      <div style="font-size:24px;font-weight:800;color:var(--goldd)">${k.bilangan}x</div>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════
+   LAPORAN
+═══════════════════════════════════════ */
+async function tukarKelasGuru(){
+  const guruData=GURU_SKDK.find(g=>g.id===CU?.id);
+  if(!guruData||guruData.kelas.length<2){showT('Anda hanya mengajar satu kelas','');return;}
+  const pil=await tanyaKelas(guruData);
+  if(!pil)return;
+  CU.darjah=pil.darjah;CU.kelas=pil.kelas;
+  simpanSesi(CU);
+  document.getElementById('sbRole').textContent='Guru — '+pil.darjah+' '+pil.kelas;
+  populateSels();renderDash();renderAlert();
+  showT('✅ Kini melihat '+pil.darjah+' '+pil.kelas,'ok',3000);
+}
+
+function lapTab(t,el){activeLapTab=t;document.querySelectorAll('.tab-b').forEach(b=>b.classList.remove('active'));el.classList.add('active');renderLap();}
+function renderLap(){
+  const t=activeLapTab;
+  if(t==='M')renderLapM();else if(t==='B')renderLapB();else if(t==='mu')renderLapMurid();else if(t==='D')renderLapD();else if(t==='G')renderLapG();else if(t==='kump')renderLapKump();
+}
+
+function renderLapM(){
+  const myRekod=CU?.peranan==='admin'?DB.rekod:DB.rekod.filter(r=>r.guruId===CU?.id);
+  const rows=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date();d.setDate(d.getDate()-i);
+    const ds=d.toDateString();
+    const rs=myRekod.filter(r=>new Date(r.tarikh).toDateString()===ds);
+    const mn=new Set(rs.map(r=>r.muridId)).size;
+    const mp=rs.reduce((a,r)=>a+(r.jumlah||0),0);
+    const cml=rs.filter(r=>(r.kualiti||'').startsWith('Cemerlang')).length;
+    const days=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+    rows.push(`<tr><td><b>${days[d.getDay()]}, ${fmtD(d.toISOString())}</b></td><td style="text-align:center">${rs.length}</td><td style="text-align:center">${mn}</td><td style="text-align:center">${mp}</td><td style="text-align:center"><span class="bdg bg">${rs.length?Math.round(cml/rs.length*100):0}%</span></td></tr>`);
+  }
+  document.getElementById('lapContent').innerHTML=`<div class="card"><div class="ch"><h3>📈 Laporan Mingguan SK Datin Khadijah</h3></div><div class="cb np" style="overflow-x:auto"><table class="dt"><thead><tr><th>Hari</th><th>Sesi</th><th>Murid</th><th>Jml M/S</th><th>% Cemerlang</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
+}
+
+function renderLapB(){
+  const myRekod=CU?.peranan==='admin'?DB.rekod:DB.rekod.filter(r=>r.guruId===CU?.id);
+  const yr=new Date().getFullYear();
+  const rows=BLF.map((b,m)=>{
+    const rs=myRekod.filter(r=>{const d=new Date(r.tarikh);return d.getFullYear()===yr&&d.getMonth()===m;});
+    const mn=new Set(rs.map(r=>r.muridId)).size;
+    const mp=rs.reduce((a,r)=>a+(r.jumlah||0),0);
+    const kt=rs.filter(r=>(r.kualiti||'').startsWith('Khatam')).length;
+    return`<tr><td><b>${b}</b></td><td style="text-align:center">${rs.length}</td><td style="text-align:center">${mn}</td><td style="text-align:center">${mp}</td><td style="text-align:center">${kt>0?`<span class="bdg bb">🏆 ${kt}</span>`:'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('lapContent').innerHTML=`<div class="card"><div class="ch"><h3>📅 Laporan Bulanan ${yr}</h3></div><div class="cb np" style="overflow-x:auto"><table class="dt"><thead><tr><th>Bulan</th><th>Sesi</th><th>Murid</th><th>Jml M/S</th><th>Khatam</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderLapMurid(){
+  const murid=getMyMurid();
+  // Filter controls
+  const html=`
+    <div class="card" style="margin-bottom:12px"><div class="cb">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+        <input class="fc" id="lapMCari" placeholder="🔍 Cari nama..." style="width:180px" oninput="renderLapMurid()">
+        <select class="fc" id="lapMDarjah" style="width:auto" onchange="renderLapMurid()">
+          <option value="">Semua Darjah</option>
+          ${DARJAH.map(d=>`<option>${d}</option>`).join('')}
+        </select>
+        <select class="fc" id="lapMKelas" style="width:auto" onchange="renderLapMurid()">
+          <option value="">Semua Kelas</option>
+          ${[...new Set(DB.murid.map(m=>m.kelas))].sort().map(k=>`<option>${k}</option>`).join('')}
+        </select>
+        <select class="fc" id="lapMPeringkat" style="width:auto" onchange="renderLapMurid()">
+          <option value="">Semua Peringkat</option>
+          ${['Iqra 1','Iqra 2','Iqra 3','Iqra 4','Iqra 5','Iqra 6','Al-Quran','Khatam'].map(p=>`<option>${p}</option>`).join('')}
+        </select>
+      </div>
+    </div></div>`;
+
+  const cari=(document.getElementById('lapMCari')?.value||'').toLowerCase();
+  const df=document.getElementById('lapMDarjah')?.value||'';
+  const kf=document.getElementById('lapMKelas')?.value||'';
+  const pf=document.getElementById('lapMPeringkat')?.value||'';
+
+  let list=murid;
+  if(cari) list=list.filter(m=>m.nama.toLowerCase().includes(cari));
+  if(df) list=list.filter(m=>m.darjah===df);
+  if(kf) list=list.filter(m=>m.kelas===kf);
+  if(pf) list=list.filter(m=>m.peringkat===pf);
+
+  const rows=list.map(m=>{
+    const rs=DB.rekod.filter(r=>r.muridId===m.id);
+    const lr=rs.sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh))[0];
+    const mp=rs.reduce((a,r)=>a+(r.jumlah||0),0);
+    const days=lr?dayDiff(lr.tarikh):'—';
+    const warn=typeof days==='number'&&days>alertDays;
+    const kump=DB.kumpulan?.find(k=>k.muridIds?.includes(m.id));
+    const kumpBadge=kump?`<span class="bdg" style="background:${kump.warna||'#e3f2fd'};color:#0d47a1">${esc(kump.nama)}</span>`:'';
+    return`<tr ${warn?'style="background:#fff5f5"':''}>
+      <td class="nc" style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(m.nama)}</td>
+      <td style="font-size:12px">${m.darjah}</td>
+      <td style="font-size:12px">${m.kelas}</td>
+      <td>${kumpBadge}</td>
+      <td><span class="bdg ${m.peringkat==='Khatam'?'bb':'bg'}" style="font-size:11px">${m.peringkat}</span></td>
+      <td style="text-align:center;font-size:12px">${m.mukaSurat}</td>
+      <td style="text-align:center;font-size:12px">${rs.length}</td>
+      <td style="text-align:center;font-size:12px;${warn?'color:var(--red);font-weight:700':''}">${days}h</td>
+      <td>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-sm btn-s" onclick="qeOpen('${m.id}')" title="Edit" style="padding:5px 10px">✏️</button>
+          <button class="btn btn-sm btn-d" onclick="qeHapusDirect('${m.id}')" title="Padam" style="padding:5px 10px">🗑</button>
+          <button class="btn btn-sm" style="background:var(--blue2);color:var(--blue);padding:5px 10px" onclick="rkCepat('${m.id}')" title="Rekod">📋</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('lapContent').innerHTML=html+`
+    <div class="card"><div class="ch">
+      <h3>👥 Senarai Murid (${list.length})</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-s" onclick="openAddMurid()">+ Tambah</button>
+      </div>
+    </div>
+    <div class="cb np" style="overflow-x:auto">
+      <table class="dt"><thead><tr>
+        <th>Nama</th><th>Darjah</th><th>Kelas</th><th>Kumpulan</th>
+        <th>Peringkat</th><th>M/S</th><th>Sesi</th><th>Terakhir</th><th>Tindakan</th>
+      </tr></thead><tbody>${rows||'<tr><td colspan="9" style="text-align:center;color:var(--gray4)">Tiada data</td></tr>'}</tbody></table>
+    </div></div>`;
+}
+
+/* ── QUICK EDIT MURID ── */
+let qeCurrentId = null;
+function qeOpen(id){
+  qeCurrentId=id;
+  const m=DB.murid.find(x=>x.id===id);if(!m)return;
+  document.getElementById('qeNamaMurid').textContent=m.nama;
+  document.getElementById('qeJenis').value=m.jenis||'Iqra Baru';
+  document.getElementById('qePeringkat').value=m.peringkat||'Iqra 1';
+  document.getElementById('qeMS').value=m.mukaSurat||1;
+  document.getElementById('qeDarjah').value=m.darjah||'Darjah 1';
+  document.getElementById('qeKelas').value=m.kelas||'';
+  document.getElementById('qeSt').value=m.status||'Aktif';
+  qeUpdateRange();
+  openM('moQuickEdit');
+}
+
+function qeUpdateRange(){
+  const j=document.getElementById('qeJenis').value;
+  const p=document.getElementById('qePeringkat').value;
+  const h=document.getElementById('qeMH'),inp=document.getElementById('qeMS');
+  if(p==='Khatam'){h.textContent='(N/A)';inp.disabled=true;return;}
+  inp.disabled=false;
+  if(j==='Al-Quran'||p==='Al-Quran'){h.textContent='(1-604)';inp.min=1;inp.max=604;return;}
+  const ref=getRef(j,p);
+  if(ref){h.textContent='('+ref.dari+'-'+ref.ke+')';inp.min=ref.dari;inp.max=ref.ke;}
+}
+
+async function qeSimpan(){
+  if(!qeCurrentId)return;
+  const j=document.getElementById('qeJenis').value;
+  const p=document.getElementById('qePeringkat').value;
+  const ms=parseInt(document.getElementById('qeMS').value)||1;
+  const ref=getRef(j,p);
+  let iqraLabel=p+(ref?(ref.j?' ('+ref.j+')':' ('+j+')'):'');
+  if(p==='Al-Quran'||j==='Al-Quran') iqraLabel='Al-Quran (Juzuk '+getJuz(ms)+')';
+  if(p==='Khatam') iqraLabel='🏆 Khatam';
+  const data={
+    id:qeCurrentId,
+    jenis:j,peringkat:p,mukaSurat:ms,iqraLabel,
+    darjah:document.getElementById('qeDarjah').value,
+    kelas:document.getElementById('qeKelas').value,
+    status:document.getElementById('qeSt').value
+  };
+  const r=await api('editMurid',{murid:data});
+  if(!r.ok){showT(r.msg||'Gagal','err');return;}
+  const i=DB.murid.findIndex(m=>m.id===qeCurrentId);
+  if(i>=0) DB.murid[i]={...DB.murid[i],...data};
+  saveLocal();closeM('moQuickEdit');renderLap();renderDash();
+  showT('✅ Murid dikemaskini!','ok');
+}
+
+async function qeHapus(){
+  if(!qeCurrentId)return;
+  const m=DB.murid.find(x=>x.id===qeCurrentId);
+  if(!m||!confirm('Tukar status '+m.nama+' kepada Tamat?'))return;
+  const r=await api('editMurid',{murid:{...m,status:'Tamat',id:qeCurrentId}});
+  if(r.ok){const i=DB.murid.findIndex(x=>x.id===qeCurrentId);if(i>=0)DB.murid[i].status='Tamat';saveLocal();}
+  closeM('moQuickEdit');renderLap();renderMurid();renderDash();
+  showT('Murid ditanda Tamat','warn');
+}
+
+async function qeHapusDirect(id){
+  const m=DB.murid.find(x=>x.id===id);
+  if(!m||!confirm('Tukar status '+m.nama+' kepada Tamat?'))return;
+  const r=await api('editMurid',{murid:{...m,status:'Tamat',id}});
+  if(r.ok){const i=DB.murid.findIndex(x=>x.id===id);if(i>=0)DB.murid[i].status='Tamat';saveLocal();}
+  renderLap();renderMurid();renderDash();
+  showT('Murid ditanda Tamat','warn');
+}
+
+function renderLapD(){
+  const rows=DARJAH.map(d=>{
+    const m=DB.murid.filter(x=>x.darjah===d&&x.status==='Aktif');
+    const rs=DB.rekod.filter(r=>r.darjah===d);
+    const mp=rs.reduce((a,r)=>a+(r.jumlah||0),0);
+    const kt=m.reduce((a,x)=>a+(x.bilKhatam||0),0);
+    return`<tr><td class="nc">${d}</td><td style="text-align:center">${m.length}</td><td style="text-align:center">${m.filter(x=>x.peringkat!=='Al-Quran'&&x.peringkat!=='Khatam').length}</td><td style="text-align:center">${m.filter(x=>x.peringkat==='Al-Quran'||x.peringkat==='Khatam').length}</td><td style="text-align:center">${rs.length}</td><td style="text-align:center">${mp}</td><td style="text-align:center">${kt>0?`<span class="bdg bb">🏆 ${kt}</span>`:'—'}</td></tr>`;
+  }).join('');
+  document.getElementById('lapContent').innerHTML=`<div class="card"><div class="ch"><h3>🏫 Laporan Per Darjah</h3></div><div class="cb np"><table class="dt"><thead><tr><th>Darjah</th><th>Murid</th><th>Sedang Iqra</th><th>Al-Quran</th><th>Sesi</th><th>Jml M/S</th><th>Khatam</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+
+function renderLapG(){
+  const today=new Date().toDateString();
+
+  // Bina jadual mengikut GURU_SKDK — sumber utama yang pasti ada
+  const rows = GURU_SKDK.map(g=>{
+    // Kumpulkan semua kelas guru ini
+    const kelasRows = g.kelas.map(kl=>{
+      const muridKelas=DB.murid.filter(m=>m.darjah===kl.darjah&&m.kelas===kl.kelas&&m.status==='Aktif');
+      const rsKelas=DB.rekod.filter(r=>r.darjah===kl.darjah&&r.kelas===kl.kelas);
+      const sh=rsKelas.filter(r=>new Date(r.tarikh).toDateString()===today).length;
+      const kWarna={'Darjah 1':'#e3f2fd','Darjah 2':'#e8f5e9','Darjah 3':'#fff3e0','Darjah 4':'#fce4ec','Darjah 5':'#f3e5f5','Darjah 6':'#e0f2f1'};
+      return`<span style="display:inline-flex;align-items:center;gap:4px;background:${kWarna[kl.darjah]||'#f5f5f5'};padding:3px 10px;border-radius:20px;font-size:12px;margin:2px">
+        <b>${kl.darjah}</b> · ${muridKelas.length} murid · ${rsKelas.length} sesi · <span style="color:#1b5e20;font-weight:700">${sh} hari ini</span>
+      </span>`;
+    }).join('');
+
+    const inisial=g.singkat.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    return`<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:50%;background:var(--g6);color:var(--g1);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0">${inisial}</div>
+          <div>
+            <div class="nc" style="font-size:13px">${esc(g.singkat)}</div>
+            <div style="font-size:11px;color:var(--gray4)">${esc(g.nama)}</div>
+          </div>
+        </div>
+      </td>
+      <td>${kelasRows}</td>
+      <td style="text-align:center">
+        <span class="bdg bg">${g.kelas.length} kelas</span>
+      </td>
+    </tr>`;
+  }).join('');
+
+  // Panel ringkasan per kelas (untuk admin)
+  const kelasList=['Darjah 1','Darjah 2','Darjah 3','Darjah 4','Darjah 5','Darjah 6'];
+  const kelasRows = kelasList.map(darjah=>{
+    const muridKelas=DB.murid.filter(m=>m.darjah===darjah&&m.kelas==='Jauhari'&&m.status==='Aktif');
+    const rsKelas=DB.rekod.filter(r=>r.darjah===darjah&&r.kelas==='Jauhari');
+    const guruKelas=GURU_SKDK.filter(g=>g.kelas.some(k=>k.darjah===darjah));
+    const sh=rsKelas.filter(r=>new Date(r.tarikh).toDateString()===today).length;
+    const guruNama=guruKelas.map(g=>`<span class="bdg bg" style="font-size:11px;margin:1px">${g.singkat}</span>`).join('');
+    return`<tr>
+      <td class="nc">${darjah} Jauhari</td>
+      <td>${guruNama||'<span class="bdg bgr">—</span>'}</td>
+      <td style="text-align:center">${muridKelas.length}</td>
+      <td style="text-align:center">${rsKelas.length}</td>
+      <td style="text-align:center"><span class="bdg bbl">${sh}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('lapContent').innerHTML=`
+    <div class="card" style="margin-bottom:14px">
+      <div class="ch"><h3>👩‍🏫 Senarai Guru SK Datin Khadijah</h3></div>
+      <div class="cb np" style="overflow-x:auto">
+        <table class="dt"><thead><tr>
+          <th>Nama Guru</th><th>Kelas & Statistik</th><th>Bilangan Kelas</th>
+        </tr></thead><tbody>${rows}</tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><h3>🏫 Ringkasan Per Kelas</h3></div>
+      <div class="cb np" style="overflow-x:auto">
+        <table class="dt"><thead><tr>
+          <th>Kelas</th><th>Guru Bertugas</th><th>Murid</th><th>Jml Sesi</th><th>Sesi Hari Ini</th>
+        </tr></thead><tbody>${kelasRows}</tbody></table>
+      </div>
+    </div>`;
+}
+
+
+function renderLapKump(){
+  const kumpList=DB.kumpulan||[];
+  if(!kumpList.length){
+    document.getElementById('lapContent').innerHTML=`
+      <div class="card"><div class="cb">
+        <div class="es"><div class="ei">👥</div>
+          <p>Belum ada kumpulan bacaan ditetapkan</p>
+          <button class="btn btn-p" style="margin-top:12px" onclick="openModal_kumpulan()">+ Cipta Kumpulan Bacaan</button>
+        </div>
+      </div></div>`;
+    return;
+  }
+
+  // Group kumpulan by darjah/kelas
+  const byKelas={};
+  kumpList.forEach(k=>{
+    const key=(k.darjah||'')+'|||'+(k.kelas||'');
+    if(!byKelas[key]) byKelas[key]=[];
+    byKelas[key].push(k);
+  });
+
+  let html=`<div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+    <button class="btn btn-p" onclick="openModal_kumpulan()">+ Cipta / Edit Kumpulan</button>
+  </div>`;
+
+  Object.entries(byKelas).forEach(([key,kumpalauns])=>{
+    const [darjah,kelas]=key.split('|||');
+    html+=`<div class="card" style="margin-bottom:14px">
+      <div class="ch"><h3>📚 ${darjah} ${kelas}</h3></div>
+      <div class="cb" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">`;
+
+    kumpalauns.forEach(k=>{
+      const muridK=(k.muridIds||[]).map(id=>{
+        const m=DB.murid.find(x=>x.id===id);
+        return m?`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--gray2)">
+          <div>
+            <div style="font-size:13px;font-weight:500">${esc(m.nama.split(' ').slice(0,3).join(' '))}</div>
+            <div style="font-size:11px;color:var(--gray5)">${m.peringkat} • M/S ${m.mukaSurat}</div>
+          </div>
+          <button class="btn btn-sm" style="padding:4px 10px;background:var(--blue2);color:var(--blue);font-size:11px" onclick="rkCepat('${id}')">📋</button>
+        </div>`:'';
+      }).join('');
+
+      html+=`<div style="background:var(--gray0);border-radius:var(--r-md);border:1px solid var(--gray2);overflow:hidden">
+        <div style="background:${k.warna||'#e3f2fd'};padding:10px 14px;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-weight:700;font-size:13px">${esc(k.nama)}</div>
+          <span style="font-size:11px;opacity:.8">${(k.muridIds||[]).length} murid</span>
+        </div>
+        <div style="padding:8px 14px;max-height:280px;overflow-y:auto">${muridK||'<div style="text-align:center;padding:16px;color:var(--gray4);font-size:12px">Tiada murid</div>'}</div>
+      </div>`;
+    });
+
+    html+='</div></div>';
+  });
+
+  document.getElementById('lapContent').innerHTML=html;
+}
+
+function openModal_kumpulan(){openM('moKumpulan');}
+
+function kpMuatKelas(){
+  const d=document.getElementById('kpDarjah').value;
+  const klss=[...new Set(DB.murid.filter(m=>m.darjah===d&&m.status==='Aktif').map(m=>m.kelas))].sort();
+  document.getElementById('kpKelas').innerHTML='<option value="">Pilih Kelas</option>'+klss.map(k=>`<option>${k}</option>`).join('');
+  document.getElementById('kpSenarai').innerHTML='';
+  document.getElementById('kpMuridList').innerHTML='';
+}
+
+function kpMuatMurid(){
+  const d=document.getElementById('kpDarjah').value;
+  const k=document.getElementById('kpKelas').value;
+  if(!d||!k) return;
+
+  // Papar kumpulan sedia ada
+  const sedia=(DB.kumpulan||[]).filter(x=>x.darjah===d&&x.kelas===k);
+  const WARNA=['#e3f2fd','#e8f5e9','#fff3e0','#fce4ec','#ede7f6','#e0f2f1'];
+
+  const snEl=document.getElementById('kpSenarai');
+  if(sedia.length){
+    snEl.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--gray5);text-transform:uppercase;margin-bottom:8px">Kumpulan Sedia Ada</div>`+
+      sedia.map((k,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:${k.warna||WARNA[i%6]};border-radius:var(--r-sm);margin-bottom:6px">
+        <div style="flex:1;font-weight:600;font-size:13px">${esc(k.nama)}</div>
+        <div style="font-size:12px;color:var(--gray6)">${(k.muridIds||[]).length} murid</div>
+        <button class="btn btn-sm btn-d" style="padding:4px 8px;font-size:11px" onclick="kpHapus('${k.id}')">🗑</button>
+      </div>`).join('');
+  } else {snEl.innerHTML='';}
+
+  // Papar senarai murid untuk assign ke kumpulan
+  const muridKelas=DB.murid.filter(m=>m.darjah===d&&m.kelas===k&&m.status==='Aktif');
+  const mEl=document.getElementById('kpMuridList');
+  if(!muridKelas.length){mEl.innerHTML='<p style="font-size:12px;color:var(--gray4)">Tiada murid dalam kelas ini</p>';return;}
+
+  const kumpOpts=(DB.kumpulan||[]).filter(x=>x.darjah===d&&x.kelas===k)
+    .map(k=>`<option value="${k.id}">${k.nama}</option>`).join('');
+
+  mEl.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--gray5);text-transform:uppercase;margin-bottom:8px">Tugaskan Murid ke Kumpulan</div>`+
+    `<table class="dt" style="font-size:12px">
+      <thead><tr><th>Nama Murid</th><th>Peringkat</th><th>Kumpulan</th></tr></thead>
+      <tbody>`+
+    muridKelas.map(m=>{
+      const kumpId=(DB.kumpulan||[]).find(kp=>kp.muridIds?.includes(m.id)&&kp.darjah===d&&kp.kelas===k)?.id||'';
+      return`<tr>
+        <td class="nc">${esc(m.nama.split(' ').slice(0,3).join(' '))}</td>
+        <td><span class="bdg bg" style="font-size:10px">${m.peringkat}</span></td>
+        <td><select class="fc" id="kpa_${m.id}" style="padding:5px 8px;font-size:12px">
+          <option value="">-- Tiada --</option>
+          ${kumpOpts}
+        </select></td>
+      </tr>`;
+    }).join('')+
+    `</tbody></table>`;
+
+  // Set semula nilai sedia ada
+  muridKelas.forEach(m=>{
+    const kumpId=(DB.kumpulan||[]).find(kp=>kp.muridIds?.includes(m.id)&&kp.darjah===d&&kp.kelas===k)?.id||'';
+    const sel=document.getElementById('kpa_'+m.id);
+    if(sel&&kumpId) sel.value=kumpId;
+  });
+}
+
+function lapGEditGuru(id){openEditGuru(id);}
+function lapGTambahGuru(darjah,kelas){openAddGuru();setTimeout(()=>{const d=document.getElementById('mgD');const k=document.getElementById('mgK');if(d)d.value=darjah;if(k)k.value=kelas;const n=document.getElementById('mgN');if(n)n.focus();},150);}
+
+function kpTambah(){
+  const nama=document.getElementById('kpNamaBaru').value.trim();
+  const d=document.getElementById('kpDarjah').value;
+  const k=document.getElementById('kpKelas').value;
+  if(!nama){showT('Masukkan nama kumpulan','err');return;}
+  if(!d||!k){showT('Pilih darjah dan kelas dahulu','err');return;}
+  if(!DB.kumpulan) DB.kumpulan=[];
+  const WARNA=['#e3f2fd','#e8f5e9','#fff3e0','#fce4ec','#ede7f6','#e0f2f1'];
+  const idx=DB.kumpulan.filter(x=>x.darjah===d&&x.kelas===k).length;
+  DB.kumpulan.push({id:genId('KP'),nama,darjah:d,kelas:k,warna:WARNA[idx%6],muridIds:[]});
+  saveLocal();
+  document.getElementById('kpNamaBaru').value='';
+  kpMuatMurid();
+  showT('✅ Kumpulan "'+nama+'" ditambah!','ok');
+}
+
+function kpHapus(id){
+  if(!confirm('Padam kumpulan ini?'))return;
+  DB.kumpulan=(DB.kumpulan||[]).filter(k=>k.id!==id);
+  saveLocal();kpMuatMurid();showT('Kumpulan dipadam','warn');
+}
+
+function kpSimpan(){
+  const d=document.getElementById('kpDarjah').value;
+  const k=document.getElementById('kpKelas').value;
+  if(!d||!k){showT('Pilih darjah dan kelas dahulu','err');return;}
+  if(!DB.kumpulan) DB.kumpulan=[];
+
+  // Reset kumpulan kelas ini
+  DB.kumpulan.filter(kp=>kp.darjah===d&&kp.kelas===k).forEach(kp=>{kp.muridIds=[];kp.muridNama=[];});
+
+  // Assign — simpan ID dan NAMA (nama lebih stabil bila ID berubah akibat dedup)
+  const muridKelas=DB.murid.filter(m=>m.darjah===d&&m.kelas===k&&m.status==='Aktif');
+  let assigned=0;
+  muridKelas.forEach(m=>{
+    const sel=document.getElementById('kpa_'+m.id);
+    if(!sel||!sel.value) return;
+    const kp=DB.kumpulan.find(x=>x.id===sel.value);
+    if(kp){
+      if(!kp.muridIds) kp.muridIds=[];
+      if(!kp.muridNama) kp.muridNama=[];
+      if(!kp.muridIds.includes(m.id)) kp.muridIds.push(m.id);
+      const nm=m.nama.trim().toUpperCase();
+      if(!kp.muridNama.includes(nm)) kp.muridNama.push(nm);
+      assigned++;
+    }
+  });
+
+  saveLocal();
+  showT('✅ '+assigned+' murid dimasukkan ke kumpulan!','ok',3000);
+  closeM('moKumpulan');
+  rkFiltMurid();
+  if(activeLapTab==='kump') renderLapKump();
+}
+
+/* ── GURU BY KELAS VIEW ── */
+function renderGuruByKelas(){
+  const el=document.getElementById('guruByKelas');
+  if(!el)return;
+
+  const html=GURU_SKDK.flatMap(g=>g.kelas.map(kl=>({g,kl})))
+    .sort((a,b)=>a.kl.darjah.localeCompare(b.kl.darjah))
+    .map(({g,kl})=>{
+      const bilMurid=DB.murid.filter(m=>m.darjah===kl.darjah&&m.kelas===kl.kelas&&m.status==='Aktif').length;
+      const inisial=g.singkat.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+      const kWarna={'Darjah 1':'#e3f2fd','Darjah 2':'#e8f5e9','Darjah 3':'#fff3e0','Darjah 4':'#fce4ec','Darjah 5':'#f3e5f5','Darjah 6':'#e0f2f1'};
+      return`<div style="background:${kWarna[kl.darjah]||'#f5f5f5'};border-radius:var(--r-md);padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--g2);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${inisial}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--gray8)">${esc(g.singkat)}</div>
+          <div style="font-size:11px;color:var(--gray5)">${kl.darjah} ${kl.kelas} • ${bilMurid} murid</div>
+        </div>
+      </div>`;
+    }).join('');
+
+  el.innerHTML=`<div class="card" style="margin-bottom:14px"><div class="ch"><h3>🏫 Guru Mengikut Kelas</h3></div><div class="cb">${html||'<div class="es"><p>Tiada data</p></div>'}</div></div>`;
+}
+
+function openAddGuruKelas(darjah,kelas){
+  openAddGuru();
+  setTimeout(()=>{
+    document.getElementById('mgD').value=darjah;
+    document.getElementById('mgK').value=kelas;
+  },100);
+}
+
+/* ═══════════════════════════════════════
+   ALERT
+═══════════════════════════════════════ */
+function alertFilter(d,el){alertDays=d;document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderAlert();}
+
+function renderAlert(){
+  const murid=getMyMurid();
+  let list;
+  if(alertDays===0){list=murid;}
+  else{const cutoff=new Date();cutoff.setDate(cutoff.getDate()-alertDays);list=murid.filter(m=>{const rs=DB.rekod.filter(r=>r.muridId===m.id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));return!rs.length||new Date(rs[0].tarikh)<cutoff;});}
+  list.sort((a,b)=>{const lA=DB.rekod.filter(r=>r.muridId===a.id).sort((x,y)=>new Date(y.tarikh)-new Date(x.tarikh))[0];const lB=DB.rekod.filter(r=>r.muridId===b.id).sort((x,y)=>new Date(y.tarikh)-new Date(x.tarikh))[0];return (lA?new Date(lA.tarikh):new Date(0))-(lB?new Date(lB.tarikh):new Date(0));});
+  const el=document.getElementById('alertList');
+  if(!list.length){el.innerHTML='<div class="card"><div class="cb"><div class="es"><div class="ei">✅</div><p>Tiada murid memerlukan perhatian!</p></div></div></div>';return;}
+  el.innerHTML=list.map(m=>{const rs=DB.rekod.filter(r=>r.muridId===m.id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));const days=rs.length?dayDiff(rs[0].tarikh):999;return`<div class="alert-item ${days>30?'':'warn'}"><div class="ai-ico">${days>30?'🔴':'⚠️'}</div><div class="ai-txt"><div class="ai-nm">${esc(m.nama)}</div><div class="ai-dt">${m.darjah} ${m.kelas} • ${m.peringkat} • ${rs.length?days+' hari tiada rekod':'Belum ada rekod'}</div></div><button class="btn btn-sm btn-p" onclick="rkCepat('${m.id}')">📋</button></div>`;}).join('');
+}
+
+function rkCepat(id){navTo('rekod',null);setTimeout(()=>{populateSels();const s=document.getElementById('rkM');if(s){s.value=id;rkOnMurid();}},100);}
+
+/* ═══════════════════════════════════════
+   MURID
+═══════════════════════════════════════ */
+function renderMurid(){
+  const cari=(document.getElementById('mCari')?.value||'').toLowerCase();
+  const df=document.getElementById('mDF')?.value||'';
+  const jf=document.getElementById('mJF')?.value||'';
+  let list=DB.murid;
+  if(cari)list=list.filter(m=>m.nama.toLowerCase().includes(cari)||m.kelas.toLowerCase().includes(cari));
+  if(df)list=list.filter(m=>m.darjah===df);
+  if(jf)list=list.filter(m=>m.jenis===jf);
+  const tbody=document.getElementById('mTbody');
+  if(!list.length){tbody.innerHTML=`<tr><td colspan="10" style="text-align:center;color:var(--gray4)">Tiada murid</td></tr>`;return;}
+  tbody.innerHTML=list.map(m=>{
+    const g=DB.guru.find(x=>x.id===m.guruId);
+    return`<tr>
+      <td class="nc">${esc(m.nama)}</td><td>${m.darjah}</td><td>${m.kelas}</td>
+      <td>${g?esc(g.nama):'—'}</td>
+      <td><span class="bdg ${m.jenis==='Iqra Baru'?'bg':m.jenis==='Iqra Lama'?'br':'bpu'}">${m.jenis||'—'}</span></td>
+      <td>${m.peringkat||'—'}</td>
+      <td style="text-align:center">${m.mukaSurat||1}</td>
+      <td style="text-align:center">${(m.bilKhatam||0)>0?`<span class="bdg bb">🏆 ${m.bilKhatam}x</span>`:'—'}</td>
+      <td><span class="bdg ${m.status==='Aktif'?'bg':'bgr'}">${m.status||'Aktif'}</span></td>
+      <td style="display:flex;gap:5px">
+        <button class="btn btn-sm btn-s" onclick="openEditMurid('${m.id}')">✏️</button>
+        <button class="btn btn-sm btn-d" style="padding:6px 10px" onclick="hpsMurid('${m.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openAddMurid(){
+  editMuridId=null;
+  document.getElementById('moMT').textContent='Tambah Murid Baharu';
+  ['mmN','mmNo','mmK','mmBK'].forEach(id=>document.getElementById(id).value=id==='mmBK'?'0':'');
+  document.getElementById('mmD').value='Darjah 1';document.getElementById('mmJ').value='Iqra Baru';
+  document.getElementById('mmP').value='Iqra 1';document.getElementById('mmSt').value='Aktif';
+  const gs=document.getElementById('mmGr');gs.innerHTML='<option value="">-- Pilih Guru --</option>'+DB.guru.filter(g=>g.peranan==='guru').map(g=>`<option value="${g.id}">${g.nama}</option>`).join('');
+  mmUpd();openM('moM');
+}
+
+function openEditMurid(id){
+  editMuridId=id;const m=DB.murid.find(x=>x.id===id);if(!m)return;
+  document.getElementById('moMT').textContent='Edit Murid';
+  document.getElementById('mmN').value=m.nama||'';document.getElementById('mmNo').value=m.no||'';
+  document.getElementById('mmD').value=m.darjah||'Darjah 1';document.getElementById('mmK').value=m.kelas||'';
+  document.getElementById('mmJ').value=m.jenis||'Iqra Baru';document.getElementById('mmP').value=m.peringkat||'Iqra 1';
+  document.getElementById('mmMS').value=m.mukaSurat||1;document.getElementById('mmBK').value=m.bilKhatam||0;
+  document.getElementById('mmSt').value=m.status||'Aktif';
+  const gs=document.getElementById('mmGr');gs.innerHTML='<option value="">-- Pilih Guru --</option>'+DB.guru.filter(g=>g.peranan==='guru').map(g=>`<option value="${g.id}" ${g.id===m.guruId?'selected':''}>${g.nama}</option>`).join('');
+  mmUpd();openM('moM');
+}
+
+function mmUpd(){
+  const j=document.getElementById('mmJ').value,p=document.getElementById('mmP').value;
+  const h=document.getElementById('mmMH'),inp=document.getElementById('mmMS');
+  if(j==='Al-Quran'||p==='Al-Quran'){h.textContent='(1-604)';inp.min=1;inp.max=604;if(!inp.value)inp.value=1;return;}
+  const ref=getRef(j,p);if(ref){h.textContent='('+ref.dari+'-'+ref.ke+')';inp.min=ref.dari;inp.max=ref.ke;if(!inp.value||inp.value<ref.dari)inp.value=ref.dari;}
+}
+
+async function simpanMurid(){
+  const nama=document.getElementById('mmN').value.trim();
+  const kelas=document.getElementById('mmK').value.trim();
+  if(!nama||!kelas){showT('Sila isi nama dan kelas','err');return;}
+  const j=document.getElementById('mmJ').value,p=document.getElementById('mmP').value;
+  const muka=parseInt(document.getElementById('mmMS').value)||1;
+  const ref=getRef(j,p);
+  let iqraLabel=p+(ref?(ref.j?' ('+ref.j+')':' ('+j+')'):'');
+  if(p==='Al-Quran'||j==='Al-Quran') iqraLabel='Al-Quran (Juzuk '+getJuz(muka)+')';
+  const data={nama,no:document.getElementById('mmNo').value.trim(),darjah:document.getElementById('mmD').value,kelas,jenis:j,peringkat:p,mukaSurat:muka,iqraLabel,bilKhatam:parseInt(document.getElementById('mmBK').value)||0,guruId:document.getElementById('mmGr').value,status:document.getElementById('mmSt').value};
+  const action=editMuridId?'editMurid':'addMurid';
+  const body=editMuridId?{murid:{...data,id:editMuridId}}:{murid:data};
+  const r=await api(action,body);
+  if(!r.ok){showT(r.msg||'Gagal','err');return;}
+  if(!editMuridId&&r.id){DB.murid.push({id:r.id,...data,tarihDaftar:new Date().toISOString(),tarihKemaskini:new Date().toISOString()});}
+  else if(editMuridId){const i=DB.murid.findIndex(m=>m.id===editMuridId);if(i>=0)DB.murid[i]={...DB.murid[i],...data};}
+  saveLocal();closeM('moM');renderMurid();populateSels();renderDash();
+  showT(editMuridId?'✅ Murid dikemaskini!':'✅ Murid berjaya ditambah!','ok');
+}
+
+async function hpsMurid(id){
+  const m=DB.murid.find(x=>x.id===id);
+  if(!m||!confirm('Tetapkan '+m.nama+' sebagai Tamat?'))return;
+  const r=await api('editMurid',{murid:{...m,status:'Tamat',id}});
+  if(r.ok){const i=DB.murid.findIndex(x=>x.id===id);if(i>=0)DB.murid[i].status='Tamat';saveLocal();renderMurid();showT('Murid ditanda Tamat','warn');}
+}
+
+/* ═══════════════════════════════════════
+   GURU
+═══════════════════════════════════════ */
+function renderGuru(){
+  const tbody=document.getElementById('gTbody');
+  tbody.innerHTML=DB.guru.map(g=>`
+    <tr><td class="nc">${esc(g.nama)}</td><td>${esc(g.email||g.username||'')}</td>
+    <td>${g.darjah||'—'}</td><td>${g.kelas||'—'}</td>
+    <td><span class="bdg ${g.peranan==='admin'?'bpu':'bg'}">${g.peranan}</span></td>
+    <td style="display:flex;gap:5px">
+      <button class="btn btn-sm btn-s" onclick="openEditGuru('${g.id}')">✏️</button>
+      ${g.email!==ADMIN_EMAIL?`<button class="btn btn-sm btn-d" style="padding:6px 10px" onclick="hpsGuru('${g.id}')">🗑</button>`:''}
+    </td></tr>`).join('');
+  renderGuruByKelas();
+}
+
+function openAddGuru(){
+  editGuruId=null;
+  document.getElementById('moGT').textContent='Tambah Guru Baharu';
+  ['mgN','mgE','mgP','mgD','mgK','mgEmail'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value='';
+  });
+  document.getElementById('mgPr').value='guru';
+  openM('moG');
+}
+
+function openEditGuru(id){
+  editGuruId=id;
+  const g=DB.guru.find(x=>x.id===id);if(!g)return;
+  document.getElementById('moGT').textContent='Edit Guru';
+  document.getElementById('mgN').value=g.nama||'';
+  // username boleh email atau nama pendek
+  document.getElementById('mgE').value=g.username||g.email||'';
+  document.getElementById('mgP').value='';
+  document.getElementById('mgPr').value=g.peranan||'guru';
+  document.getElementById('mgD').value=g.darjah||'';
+  document.getElementById('mgK').value=g.kelas||'';
+  const emailEl=document.getElementById('mgEmail');
+  if(emailEl) emailEl.value=g.emailNotif||g.email||'';
+  openM('moG');
+}
+
+async function simpanGuru(){
+  const nama=document.getElementById('mgN').value.trim();
+  const username=document.getElementById('mgE').value.trim();
+  if(!nama){showT('Sila isi nama guru','err');return;}
+  if(!username){showT('Sila isi username untuk login','err');return;}
+
+  // Auto-generate username jika kosong: ambil nama pertama lowercase
+  const usernameClean=username.toLowerCase().replace(/\s+/g,'');
+
+  // Semak duplikat username (kecuali semasa edit)
+  const duplikat=DB.guru.find(g=>
+    (g.username===usernameClean||g.email===usernameClean) &&
+    g.id!==editGuruId
+  );
+  if(duplikat){showT('Username "'+usernameClean+'" sudah digunakan oleh '+duplikat.nama,'err');return;}
+
+  const emailNotif=document.getElementById('mgEmail')?.value.trim()||'';
+  const data={
+    nama,
+    email:usernameClean,      // gunakan sebagai login identifier
+    username:usernameClean,   // simpan juga sebagai username
+    emailNotif,               // email sebenar untuk notifikasi (pilihan)
+    password:document.getElementById('mgP').value||undefined,
+    peranan:document.getElementById('mgPr').value,
+    darjah:document.getElementById('mgD').value,
+    kelas:document.getElementById('mgK').value
+  };
+
+  const action=editGuruId?'editGuru':'addGuru';
+  const body=editGuruId?{guru:{...data,id:editGuruId}}:{guru:data};
+  const r=await api(action,body);
+  if(!r.ok){showT(r.msg||'Gagal','err');return;}
+  if(!editGuruId&&r.id){DB.guru.push({id:r.id,...data,status:'Aktif'});}
+  else if(editGuruId){const i=DB.guru.findIndex(g=>g.id===editGuruId);if(i>=0)DB.guru[i]={...DB.guru[i],...data};}
+  saveLocal();
+  closeM('moG');
+  renderGuru();
+  if(activeLapTab==='G') renderLapG();
+  showT(editGuruId?'✅ Guru dikemaskini!':'✅ Guru "'+nama+'" ditambah! Username: '+usernameClean,'ok',4000);
+}
+
+async function hpsGuru(id){
+  const g=DB.guru.find(x=>x.id===id);
+  if(!g||!confirm('Padam '+g.nama+'?'))return;
+  const r=await api('editGuru',{guru:{id,status:'Tamat'}});
+  if(r.ok){const i=DB.guru.findIndex(x=>x.id===id);if(i>=0)DB.guru[i].status='Tamat';saveLocal();renderGuru();showT('Guru dipadam','warn');}
+}
+
+/* ═══════════════════════════════════════
+   TAHUN
+═══════════════════════════════════════ */
+function renderTahunPage(){
+  const murid=DB.murid.filter(m=>m.status==='Aktif');
+  const darjahs=[...new Set(murid.map(m=>m.darjah))].sort();
+  document.getElementById('tGGrid').innerHTML=darjahs.map(d=>{
+    const klss=[...new Set(murid.filter(m=>m.darjah===d).map(m=>m.kelas))];
+    return klss.map(k=>{
+      const guruId=murid.find(m=>m.darjah===d&&m.kelas===k)?.guruId||'';
+      return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="font-size:13px;font-weight:600;min-width:90px">${d} ${k}</div>
+        <select class="fc" id="tg_${d.replace(' ','')}_${k}" style="flex:1">
+          <option value="">-- Guru --</option>
+          ${DB.guru.filter(g=>g.peranan==='guru').map(g=>`<option value="${g.id}" ${g.id===guruId?'selected':''}>${g.nama}</option>`).join('')}
+        </select></div>`;
+    }).join('');
+  }).join('');
+}
+
+async function doTahun(){
+  const tB=parseInt(document.getElementById('tTB').value);
+  const kB=document.getElementById('tKB').value;
+  if(!tB){showT('Masukkan tahun baharu','err');return;}
+  if(!confirm('Proses tahun baru: naikkan semua murid Darjah 1-5, Darjah 6 tamat. Teruskan?'))return;
+  const r=await api('tukarTahun',{tahunBaharu:tB,kelasBaharu:kB,oleh:CU?.nama||'Admin'});
+  if(!r.ok){showT(r.msg||'Gagal','err');return;}
+  showT('✅ '+r.msg,'ok',5000);
+  // Sync local
+  DB.murid.filter(m=>m.status==='Aktif').forEach((m,_,arr)=>{
+    const i=DB.murid.findIndex(x=>x.id===m.id);
+    const d=parseInt((m.darjah||'').replace('Darjah ',''));
+    if(d===6)DB.murid[i].status='Tamat';
+    else{DB.murid[i].darjah='Darjah '+(d+1);if(kB){const kls=kB.split(',').map(k=>k.trim());DB.murid[i].kelas=kls[Math.floor(Math.random()*kls.length)];}}
+  });
+  saveLocal();renderMurid();renderDash();
+}
+
+function simpanTugas(){
+  const murid=DB.murid.filter(m=>m.status==='Aktif');
+  const darjahs=[...new Set(murid.map(m=>m.darjah))];
+  let updated=0;
+  darjahs.forEach(d=>{
+    const klss=[...new Set(murid.filter(m=>m.darjah===d).map(m=>m.kelas))];
+    klss.forEach(k=>{
+      const sel=document.getElementById('tg_'+d.replace(' ','')+`_${k}`);
+      if(!sel)return;
+      const guruId=sel.value;
+      DB.murid.filter(m=>m.darjah===d&&m.kelas===k&&m.status==='Aktif').forEach(m=>{
+        const i=DB.murid.findIndex(x=>x.id===m.id);
+        if(i>=0){DB.murid[i].guruId=guruId;updated++;}
+      });
+    });
+  });
+  saveLocal();showT('✅ '+updated+' murid dikemaskini guru!','ok');
+}
+
+/* ═══════════════════════════════════════
+   EXPORT
+═══════════════════════════════════════ */
+
+// Escape nilai untuk CSV — wajib ada sebelum semua fungsi export
+function csvE(v){
+  const s = String(v === null || v === undefined ? '' : v);
+  return (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r'))
+    ? '"' + s.replace(/"/g, '""') + '"'
+    : s;
+}
+
+// ═══════════════════════════════════════
+// SATU KLIK — Download Rekod Kelas Guru
+// ═══════════════════════════════════════
+function eksportKelas(){
+  try{
+    const isAdmin = CU?.peranan==='admin';
+    const today = new Date();
+    const bulanNow = today.getMonth();
+    const tahunNow = today.getFullYear();
+    const namaBulan = BLF[bulanNow];
+
+    // Filter mengikut kelas guru atau semua jika admin
+    let rekodFilter = [...(DB.rekod||[])];
+    let muridFilter = (DB.murid||[]).filter(m=>m.status==='Aktif');
+    let labelKelas = 'Semua_Kelas';
+
+    if(!isAdmin && CU?.darjah && CU?.kelas){
+      rekodFilter = rekodFilter.filter(r=>r.darjah===CU.darjah && r.kelas===CU.kelas);
+      muridFilter = muridFilter.filter(m=>m.darjah===CU.darjah && m.kelas===CU.kelas);
+      labelKelas = CU.darjah.replace(/ /g,'')+'_'+CU.kelas;
+    }
+
+    // Rekod bulan semasa
+    const rekodBulan = rekodFilter.filter(r=>{
+      const d = new Date(r.tarikh);
+      return d.getFullYear()===tahunNow && d.getMonth()===bulanNow;
+    }).sort((a,b)=>new Date(a.tarikh)-new Date(b.tarikh));
+
+    // ── BINA CSV ──
+    const bom = '\uFEFF';
+    const lines = [];
+
+    // Header maklumat
+    lines.push(csvE('SISTEM TASMIK SK DATIN KHADIJAH'));
+    lines.push(csvE('Laporan: '+labelKelas.replace(/_/g,' ')+' | Bulan: '+namaBulan+' '+tahunNow));
+    lines.push(csvE('Dicetak: '+fmtD(today.toISOString())+' | Oleh: '+(CU?.nama||'Admin')));
+    lines.push('');
+
+    // ── Bahagian 1: Ringkasan Kemajuan Murid ──
+    lines.push(csvE('=== RINGKASAN KEMAJUAN MURID ==='));
+    const hdMurid = ['Nama Murid','Darjah','Kelas','Peringkat','Muka Surat Semasa','Sesi Bulan Ini','Jml M/S Dibaca','Tarikh Tasmik Terakhir','Status'];
+    lines.push(hdMurid.map(csvE).join(','));
+
+    muridFilter.forEach(m=>{
+      const rsMurid = rekodFilter.filter(r=>r.muridId===m.id);
+      const rsBulan = rsMurid.filter(r=>{const d=new Date(r.tarikh);return d.getFullYear()===tahunNow&&d.getMonth()===bulanNow;});
+      const lr = [...rsMurid].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh))[0];
+      const jmlMS = rsBulan.reduce((a,r)=>a+(parseInt(r.jumlah)||0),0);
+      const row = [m.nama, m.darjah, m.kelas, m.peringkat, m.mukaSurat||1, rsBulan.length, jmlMS, lr?fmtD(lr.tarikh):'Belum ada rekod', m.status||'Aktif'];
+      lines.push(row.map(csvE).join(','));
+    });
+
+    lines.push('');
+
+    // ── Bahagian 2: Rekod Terperinci Bulan Ini ──
+    lines.push(csvE('=== REKOD TASMIK TERPERINCI: '+namaBulan.toUpperCase()+' '+tahunNow+' ==='));
+    if(rekodBulan.length===0){
+      lines.push(csvE('Tiada rekod untuk bulan '+namaBulan+' '+tahunNow));
+    } else {
+      const hdRekod = ['Tarikh','Hari','Masa','Nama Murid','Darjah','Kelas','Jenis','Peringkat','Iqra/Juzuk','M/S Dari','M/S Ke','Jumlah','Kualiti','Guru','Catatan'];
+      lines.push(hdRekod.map(csvE).join(','));
+      rekodBulan.forEach(r=>{
+        const row = [
+          fmtD(r.tarikh), r.hari||'', r.masa||'',
+          r.muridNama||'', r.darjah||'', r.kelas||'',
+          r.jenis||'', r.peringkat||'', r.iqraLabel||'',
+          r.dari||'', r.ke||'', r.jumlah||'',
+          r.kualiti||'', r.guru||'', r.catatan||''
+        ];
+        lines.push(row.map(csvE).join(','));
+      });
+    }
+
+    const csv = bom + lines.join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Tasmik_SKDK_'+labelKelas+'_'+namaBulan+'_'+tahunNow+'.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showT('✅ Download berjaya! '+muridFilter.length+' murid, '+rekodBulan.length+' rekod ('+namaBulan+')','ok',4000);
+
+  } catch(err){
+    showT('❌ Gagal download: '+err.message,'err',5000);
+    console.error('eksportKelas error:',err);
+  }
+}
+
+function doExport(type){
+  const darjah=document.getElementById('exD').value;
+  const bulan=document.getElementById('exB').value;
+  const tahun=parseInt(document.getElementById('exTh').value)||new Date().getFullYear();
+  let rows=[],headers=[];
+
+  if(type==='rekod'){
+    headers=['No','Tarikh','Hari','Masa','Nama Murid','Darjah','Kelas','Guru','Jenis','Peringkat','Iqra/Juzuk','M/S Dari','M/S Ke','Jumlah','Kualiti','Catatan'];
+    let rs=DB.rekod.filter(r=>new Date(r.tarikh).getFullYear()===tahun);
+    if(darjah)rs=rs.filter(r=>r.darjah===darjah);
+    if(bulan!=='')rs=rs.filter(r=>new Date(r.tarikh).getMonth()===parseInt(bulan));
+    rs.sort((a,b)=>new Date(a.tarikh)-new Date(b.tarikh));
+    rows=rs.map((r,i)=>[i+1,fmtD(r.tarikh),r.hari||'',fmtT(r.tarikh),r.muridNama,r.darjah,r.kelas,r.guru,r.jenis,r.peringkat,r.iqraLabel,r.dari,r.ke,r.jumlah,r.kualiti,r.catatan]);
+  }else if(type==='murid'){
+    headers=['ID','Nama','Darjah','Kelas','Guru','Jenis','Peringkat','Iqra/Juzuk','M/S','Bil Khatam','Jml Sesi','Jml M/S Dibaca','Status'];
+    let ms=DB.murid;if(darjah)ms=ms.filter(m=>m.darjah===darjah);
+    rows=ms.map(m=>{const rs=DB.rekod.filter(r=>r.muridId===m.id);const g=DB.guru.find(x=>x.id===m.guruId);return[m.id,m.nama,m.darjah,m.kelas,g?g.nama:'',m.jenis,m.peringkat,m.iqraLabel,m.mukaSurat,m.bilKhatam||0,rs.length,rs.reduce((a,r)=>a+(r.jumlah||0),0),m.status];});
+  }else if(type==='khatam'){
+    headers=['No','Nama Murid','Darjah','Kelas','Bilangan','Tahun','Tarikh','Guru','Catatan'];
+    let ks=DB.khatam;if(darjah)ks=ks.filter(k=>k.darjah===darjah);
+    rows=ks.map((k,i)=>[i+1,k.muridNama,k.darjah,k.kelas,k.bilangan,k.tahun,fmtD(k.tarikh),k.guru,k.catatan]);
+  }else if(type==='laporan'){
+    headers=['Darjah','Jml Murid','Sedang Iqra','Al-Quran','Sesi','Jml M/S','Khatam'];
+    rows=DARJAH.map(d=>{const m=DB.murid.filter(x=>x.darjah===d&&x.status==='Aktif');const rs=DB.rekod.filter(r=>r.darjah===d&&new Date(r.tarikh).getFullYear()===tahun);return[d,m.length,m.filter(x=>x.peringkat!=='Al-Quran'&&x.peringkat!=='Khatam').length,m.filter(x=>x.peringkat==='Al-Quran'||x.peringkat==='Khatam').length,rs.length,rs.reduce((a,r)=>a+(r.jumlah||0),0),m.reduce((a,x)=>a+(x.bilKhatam||0),0)];});
+  }
+
+  const bom='\uFEFF';
+  const csv=bom+['SISTEM TASMIK '+SKDK,'Laporan: '+type+' | Tahun: '+tahun+(darjah?' | '+darjah:''),'',[headers,...rows].map(r=>r.map(csvE).join(',')).join('\n')].join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='SKDK_Tasmik_'+type+'_'+tahun+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showT('✅ Export CSV berjaya! Buka dengan Excel.','ok');
+}
+
+function doBackupJSON(){
+  const blob=new Blob([JSON.stringify({skdk:SKDK,exportDate:new Date().toISOString(),DB},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='SKDK_Tasmik_Backup_'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showT('✅ Backup JSON berjaya!','ok');
+}
+
+/* ═══════════════════════════════════════
+   TETAPAN
+═══════════════════════════════════════ */
+function simpanTetapan(){
+  const url=document.getElementById('setUrl').value.trim();
+  if(url){API_URL=url;localStorage.setItem('skdk_api_url',url);IS_OFFLINE=false;localStorage.removeItem('skdk_offline');}
+  alertDays=parseInt(document.getElementById('setAD').value)||7;
+  showT('✅ Tetapan disimpan!','ok');
+  updateStatsTetapan();
+}
+
+function updateStatsTetapan(){
+  const sm=document.getElementById('statMurid');
+  const sr=document.getElementById('statRekod');
+  const sg=document.getElementById('statGuru');
+  if(sm) sm.textContent=(DB.murid||[]).filter(m=>m.status==='Aktif').length+' murid aktif';
+  if(sr) sr.textContent=(DB.rekod||[]).length+' rekod';
+  if(sg) sg.textContent=GURU_SKDK.length+' guru';
+}
+
+function manualDedup(){
+  const sebelum=DB.murid.length;
+  const buang=dedupMurid();
+  const selepas=DB.murid.length;
+  renderMurid();populateSels();updateStatsTetapan();
+  if(buang>0){
+    showT('🧹 '+buang+' duplikat dibuang! ('+sebelum+' → '+selepas+' murid)','ok',5000);
+  } else {
+    showT('✅ Tiada duplikat dijumpai. ('+sebelum+' murid)','ok',3000);
+  }
+}
+
+function paksa_seed(){
+  if(!confirm('Ini akan isi semula senarai 162 murid SK Datin Khadijah. Rekod bacaan sedia ada TIDAK akan terpadam. Teruskan?'))return;
+  // Kosongkan murid dulu supaya seed semula
+  DB.murid=(DB.murid||[]).filter(m=>m.status==='Tamat'||m.status==='Pindah');
+  const {added}=seedMuridSKDK();
+  seedGuruSKDK();
+  renderMurid();populateSels();renderDash();updateStatsTetapan();
+  showT('✅ '+added+' murid dimuatkan semula!','ok',4000);
+  if(API_URL&&!IS_OFFLINE) setTimeout(()=>syncData(),1500);
+}
+
+function clearCache(){
+  if(!confirm('⚠️ AMARAN: Ini akan PADAM SEMUA data tempatan termasuk rekod bacaan.\n\nPastikan sudah backup dahulu!\n\nTeruskan?'))return;
+  if(!confirm('Adakah anda PASTI? Tindakan ini tidak boleh dibatalkan.'))return;
+  localStorage.clear();
+  showT('Data tempatan dipadam. Halaman akan dimuat semula...','warn',2000);
+  setTimeout(()=>location.reload(),2000);
+}
+
+function importJSON(){document.getElementById('jsonFile').click();}
+
+function prosesImportJSON(ev){
+  const file=ev.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(data.DB){
+        if(data.DB.murid) DB.murid=data.DB.murid;
+        if(data.DB.rekod) DB.rekod=data.DB.rekod;
+        if(data.DB.khatam) DB.khatam=data.DB.khatam;
+        if(data.DB.guru) DB.guru=data.DB.guru;
+        if(data.DB.kumpulan) DB.kumpulan=data.DB.kumpulan;
+        saveLocal();
+        seedGuruSKDK();
+        renderMurid();renderGuru();renderDash();renderAlert();updateStatsTetapan();
+        showT('✅ Backup berjaya diimport! '+DB.murid.length+' murid, '+DB.rekod.length+' rekod.','ok',5000);
+      } else {showT('❌ Format fail JSON tidak sah','err');}
+    }catch(err){showT('❌ Gagal baca fail: '+err.message,'err');}
+  };
+  reader.readAsText(file);
+  ev.target.value='';
+}
+
+async function doTukarKP(){
+  const op=document.getElementById('setOP').value;
+  const np=document.getElementById('setNP').value;
+  if(!op||!np||np.length<6){showT('Kata laluan baru minima 6 aksara','err');return;}
+  const r=await api('changePass',{userId:CU?.id,oldPass:op,newPass:np});
+  showT(r.ok?'✅ Kata laluan berjaya ditukar!':r.msg||'Gagal',r.ok?'ok':'err');
+}
+
+function tukarKataLaluan(){navTo('tetapan',null);setTimeout(()=>document.getElementById('setOP').focus(),200);}
+
+/* ═══════════════════════════════════════
+   POPULATE SELECTS
+═══════════════════════════════════════ */
+function populateSels(){
+  const murid=getMyMurid();
+  // Hidden select rkM
+  const rkMSel=document.getElementById('rkM');
+  if(rkMSel) rkMSel.innerHTML='<option value="">--</option>'+murid.map(m=>`<option value="${m.id}">${m.nama}</option>`).join('');
+  // Khatam dropdown — masih guna select biasa
+  const ktMSel=document.getElementById('ktM');
+  if(ktMSel){const v=ktMSel.value;ktMSel.innerHTML='<option value="">-- Pilih Murid --</option>'+murid.map(m=>`<option value="${m.id}">${m.nama} (${m.kelas}) — ${m.peringkat}</option>`).join('');if(v)ktMSel.value=v;}
+  // Kelas dropdown
+  const d=document.getElementById('rkD')?.value||'';
+  const klss=[...new Set(murid.filter(m=>!d||m.darjah===d).map(m=>m.kelas))].sort();
+  const ks=document.getElementById('rkK');
+  if(ks){const kv=ks.value;ks.innerHTML='<option value="">Semua Kelas</option>'+klss.map(k=>`<option>${k}</option>`).join('');if(kv)ks.value=kv;}
+  // Render murid list & auto-pilih murid terakhir
+  if(lastMuridId&&murid.find(m=>m.id===lastMuridId)){
+    rkMuridId=lastMuridId;
+    rkFiltMurid();
+    setTimeout(()=>rkPilihMurid(lastMuridId),150);
+  } else {
+    rkFiltMurid();
+  }
+}
+
+/* ═══════════════════════════════════════
+   MODAL & TOAST
+═══════════════════════════════════════ */
+function openM(id){document.getElementById(id).classList.add('open');}
+function closeM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+
+let toastId=0;
+function showT(msg,type='',dur=3000){
+  const c=document.getElementById('tc');
+  const id='t'+toastId++;
+  const div=document.createElement('div');
+  div.className='ti '+(type==='ok'?'ok':type==='err'?'err':type==='warn'?'warn':'');
+  div.id=id;div.textContent=msg;c.appendChild(div);
+  setTimeout(()=>div.classList.add('show'),10);
+  setTimeout(()=>{div.classList.remove('show');setTimeout(()=>div.remove(),350);},dur);
+}
+
+/* ═══════════════════════════════════════
+   DATA MURID SK DATIN KHADIJAH 2026
+   Diimport dari: SENARAI_NAMA_MURID_TASMIK_SK_DK.xlsx
+═══════════════════════════════════════ */
+/* ═══════════════════════════════════════
+   SENARAI NAMA MURID SK DATIN KHADIJAH 2026
+   Nama murid sahaja — tiada maklumat peribadi lain
+═══════════════════════════════════════ */
+const SKDK_MURID_2026 = {
+  "1J":{ darjah:"Darjah 1", kelas:"Jauhari",
+    murid:["AMIN NUR QHAUSSAR IMAN BINTI MASROL AZMIN","CHE ARISYA DAMIA BINTI ABDUL RAZZAQ","ESHLYNJIT KAUR BHULLAR A/P RANJIT SINGH","ESHVINJIT KAUR BHULLAR A/P RANJIT SINGH","KIRTHY A/P SIVARAJ","MARYAM DARLEENA BINTI MOHAMAD IZZUDDIN","NABILA BINTI WASIM ABDULHAKIM SALEH HASAN","NAURAH SYIFAA BINTI AHMAD HAFIS","NOOR ALIESYA NATASHA BINTI ABDULLAH","NUR AIN NAJIHAH","NUR AIN NATASYA BINTI ABDUL QAYYUUM","NUR ALISHA AMANDA BINTI ABDUL RAZZAQ","NUR AYUNI FATONAH BINTI SIRAT HELMI ATTARIQ","NUR ISHAMINA FARZANA BINTI MUHAMMAD HAFIZ","NUR KHADIJAH HAURA BINTI MOHAMMAD KHAIRUL BASYAR","NUR MIKYLA BINTI MOHAMAD SHAHRULNIZAM","NUR SAMAIRA FARISYA BINTI MUHAMMAD HAFIQ","NUR SUMAYYAH BINTI MOHD RUWAIDI","NUR WAJIHAH ATIKAH BINTI MOHD RIDZUAN","NURUL AMANI FATEEMA BINTI MOHAMAD FIRDHAUS","NURUL AINUL MARDHIAH BALQISYA BINTI MUHAMAD ZUHAIR","RABBIATULAL ADAWIYAH BINTI MUHAMAD AZRIL","RAJA ELEENA SOFEA BINTI RAJA ABDULLAH TAWFEEQ","RAJA KUNTUM MAWAR MUNIRAH BINTI RAJA NAZRIN SHAH","RAUDHATUL JANNAH BINTI AHMAD FADZIL","WAN DHIA RAISYA BINTI MIOR MOHAMMAD AZFAR"]},
+  "2J":{ darjah:"Darjah 2", kelas:"Jauhari",
+    murid:["AAIRA MARYAM BINTI SYAHIR","AISYAH HUMAIRA BINTI MOHAMAD JEBAT","ANIS HAMANI BINTI MOHD YUSOF","AUFA MARDHIYAH BINTI MUHAMMAD SYAFIQ","DHALIA ANGGUN BINTI ROSHAFEEZ","KIRTHIKAA A/P CHANDRAN MURTHY","MARISSA MAYAZARA BINTI MUHAMAD SHAH RULMUNIR","MARYAM AAFIYAH BINTI MOHD FAZLI","NEINA KAUR A/P RAVINDERPALJEET SINGH","NERLYN KAUR A/P JASPAL SINGH","NOR ATHILA BINTI MOHD KHAIRANI","NUR AFEEYA NAYLAA BINTI MUHAMMAD AFIF HAFIZIN","NUR ALYSSA HUMAYRA BINTI SA'AIDIN","NUR ARIANA SUMAYYAH BINTI MOHAMED AMIR","NUR HAFIYA ZARA BINTI MOHD YAZID","NUR SALSABILLA PUTRI AZRIAN BINTI AZIZUL","NURUL ANISA BINTI BANI HASHIM","NURUL IMAN ALISHA BINTI MOHAMMAD HAFIZ","NURUL IMAN ALLEYSHA BINTI MOHAMMAD HAFIZ","NURUL ZAHIRAH BINTI ZAMZUHAREMY","QAIREEEN BATRISYA BINTI ABDUL MUKMIN","SHARIFAH MARYAM BINTI SYED MUHAMMAD HAZWAN","TEH SAFIYA DHUHA BINTI MOHD ZAINI","ZARIN ASYIFA BINTI ZAMER AIZAT"]},
+  "3J":{ darjah:"Darjah 3", kelas:"Jauhari",
+    murid:["AMIN NUR QHADEEJA IMAN BINTI MASROL AZMIN","AMNI SYUHADA' BINTI HISHAM","DEBORAH KEERTHEE A/P GOVINDAN","DHIA NUR AISYAH BINTI AHMAD KADAFI","DHIYA AFRINA IMANI BINTI MOHD AZHAM","KALESIWARI A/P KALIDASS","NAJLA BINTI MUHSIN","NOOR UMAIRAH BINTI MOHAMAD TAUFIK","NUR AFRA NAYLA BINTI MOHAMMAD AMIRUL SHAH","NUR AISY QALESYA BINTI MOHD SHAIFULLAH","NUR AMMARA BATRISYA BINTI MOHD NAZIF","NUR EYRAHANNA LUTFIYA BINTI MOHD RASHIDI","NUR HANNAH IZZARA BINTI MOHD HAMIZAN","NUR KAYSHA HUMAIRAH BINTI MOHAMMAD KHAIRUL BASYAR","NUR QHAIRA HASYA BINTI SHAHRIL AZRIN","NUR SUFI AWLIYA BINTI NORAZLI","NUR SYAHMINA BINTI AHMAD AKMAL","NUR WARDAH BINTI AINUDDIN AZAM","NURUL AMANI FAQIHAH BINTI MOHAMAD FIRDHAUS","NURUL ANNASYA BATRISYIA BINTI SUHAIMI","PUTERI ILYANA KHALISYA BINTI AHMAD RAFIUDDIN SAFWAN","RAJA TEH QALEESYA BINTI RAJA ABDULLAH TAWFEEQ","SITI ATILIA","UMMI UFAIRAH BINTI KHAIRUL AZUAN"]},
+  "4J":{ darjah:"Darjah 4", kelas:"Jauhari",
+    murid:["ADIRA FAIHA BINTI ZULKEFLI","DAMIA QAISARA BINTI ZUHAIRI","DHIA AMINAH BINTI ROSHAFEEZ","FITIYA NUR ISLAM BINTI MUHAMMAD ZAINUDIN","NOR ALIAH NATASYAH BINTI MOHAMAD NOOR RASHDAN","NOR SHAH AYRA VARISHA BINTI ABDUL RAZAK","NOR ZAFIRA HARISSYA BINTI ZAINAL ABIDIN","NUR AILEEN SOFEA BINTI MOHAMAD AINUDIN","NUR ADIRA AZZAHRA BINTI MOHAMED IQRAM","NUR ALIESYA AISHAH BINTI MOHD PAZAL","NUR AULIA IZZATUNNISA BINTI NORHISHAM","NUR FAQIHAH BINTI SULAIMAN","NUR DAYANA BINTI RIDZUAN","NUR HAFIQA BINTI SARI BUDIN","NUR IZZATUL ANISAH BINTI MUHAMMAD SHAFUAN NAIM","NUR LIYA ILYANA SHAHOMAR BINTI ABDUL HAFIZ","NUR LIYA QISMINA SHAHOMAR BINTI ABDUL HAFIZ","NUR SUMAYYAH BINTI SAZUAN","NUR SYAWAL SYAFIYA BINTI MOHD YAHAYA","NUR WAHIDAH SYAFIQAH BINTI MOHD RIDZUAN","NUR ZHARA AISYAH BINTI JOEFENDI","NURIN NABILAH BINTI MOHD FADHIL","NURUL AISYAH SARU BINTI ABDULLAH","NURUL FALISHA LIYANA BINTI MOHD SOFFIAN","SITI NURUL AIN BINTI MOHD AZARIL AZWAD","WAN NURALYA UFAIRAH BINTI WAN KHAIRUL ARIFFIN","ZURUL AIERA DAHLEEA BINTI ZURUL NA'IM"]},
+  "5J":{ darjah:"Darjah 5", kelas:"Jauhari",
+    murid:["AISYAH BINTI MOHD NUR","ANINDITA QAISYA ZAHRA BINTI RIO HERMANTO","ARISSA AUNI AQILAH BINTI KHAIRUL FAZLI","AUNI NABIHAH BINTI AZHAR","AYU RAUDHAH BINTI SYAFIE","CHE NUR HAYATI BINTI CHE MASURIZAL","EILFYNA HAADIRA BINTI MOHD HADZWAN","HONEYSHA A/P CHANDRAN","INTAN NURHIDAYU BINTI ROSLI AMIR","JUZAILAH ZAHIDAH NABEELA BINTI MOHD JUZAILI HAFIZZULLAH","KHAIRUL HUMAIRA BINTI ZAINUDDIN","NOOR SYALIHATUNNISA AMANI BINTI SYIRAZI","NOR SYAKIRAH LIYANA BINTI MOHAMAD NAJIB","NUHA BINTI MUHSIN","NUR ADRIANA QALYSHA BINTI ABDUL RAHIM","NUR AIN NASUHA","NUR AINA DELISHA BINTI MOHD ZULFADLI","NUR AIRA FAIQA BINTI ZULKIFLI","NUR AIRIS KEISHA BINTI AFIZAL","NUR ALISHA NAFISAH BINTI ABDULLAH","NUR FATIMAH ZAHRA BINTI MOHD AMIR HASBUDIN","NUR HADFINA INSYIRAH BINTI MOHD HAMIZAN","NUR HUSNA IMANI BINTI MOHD AZRIN","NUR QASEH HANNY BINTI ALIFUDDIN","NUR SYAKILA BINTI ABDULLAH","NURALISYA UMAIRA BINTI ABDUL RAZAK","PUTERI NUR SAIDATUL NAFISAH BINTI MEGAT KHARUL REDHUAN","PUTERI NURDINI ADAWIAH BINTI KHAIRUL AZUAN","RABIATUL ADAWIYAH BINTI MIOR FIRDAUS","RABIATUL AINAA BINTI RAZMAN","RAJA NADIYYA MARDHIAH BINTI RAJA ZUHAIRI","SHARIFAH AUFA AL ZAWAWI BINTI SYED AHMAD ORAIF","SYAZATUL AIN NUHA BINTI SYAHRUL AZMI","UMMI MAISARAH BINTI KHAIRUL AZUAN","ZARIN ALESYA BINTI ZAMER AIZAT"]},
+  "6J":{ darjah:"Darjah 6", kelas:"Jauhari",
+    murid:["ADLIN SOFEA BINTI MUHAMMAD KHIDIR","AINA QAISARA BINTI AHMAD SHAHRUDIN","ALISHA SAFIYA BINTI AZIM","ERLYYNN KAUR A/P JASPAL SINGH","NOR WARDAH AFIQAH BINTI MOHD RIDZUAN","NUR ALESYA AMANI BINTI MOHAMAD AINUDIN","NUR AFRINA DAMIA BINTI MOHD RIDZUAN","NUR ALIYA HUSNINA BINTI MOHD RAZIF","NUR ALYA BATRISYA BINTI MOHD FAIZAL","NUR ANIS NAZIHAH BINTI ROSMAN","NUR ARIANA MAISARAH BINTI ABDULLAH","NUR EYRADANIA MELISSA BINTI MOHD RASHIDI","NUR FAQIHAH AMANDA BINTI MOHD FAHMI","NUR IZZATUL HUMAYRA BINTI MOHD AZREEN","NUR ZAFIRAH HANIS BINTI MOHD NAZIF","NUR ZAHRA IRDINA BINTI ABU MOHD HANIFAH","NUR ZULAIKHA BINTI ABDUL QAYYUUM","NURUL SUHADA BINTI ABDULLAH","QAIREEEN ARYANA BINTI MOHD IMRAN","QISTINA BALQIS BINTI ABDUL MUKMIN","SHAYMA' AFFI' IE BINTI MOHD SHUKRI","SITI NURFARISYA BINTI KAMARUZZAMAN","SYARIFAH NUR SARAH BINTI SYED NORWAHISYAM","UMAIRAH HAZIQAH BINTI MOHD AZIZI","WAN DHIA SAFIYYAH BINTI WAN KHAIRUL ARIFFIN","ZARRA DAMIA BINTI DAMANHURI"]}
+};
+
+// Fungsi untuk seed data murid SKDK
+function seedMuridSKDK(){
+  if(!DB.murid) DB.murid=[];
+  const jenis='Iqra Baru', peringkat='Iqra 1';
+  const ref=IB[peringkat];
+  const iqraLabel=peringkat+' ('+ref.j+')';
+  let added=0, skipped=0;
+
+  // Bina set nama sedia ada untuk carian pantas
+  const sediaSet=new Set(
+    DB.murid.filter(m=>m.status!=='Padam')
+      .map(m=>(m.nama||'').trim().toUpperCase()+'|'+(m.darjah||'')+'|'+(m.kelas||''))
+  );
+
+  Object.entries(SKDK_MURID_2026).forEach(([kod, kls])=>{
+    const guruSkdk=GURU_SKDK.filter(g=>g.kelas.some(k=>k.darjah===kls.darjah&&k.kelas===kls.kelas));
+    const guruId=guruSkdk.length>0 ? guruSkdk[0].id : '';
+
+    kls.murid.forEach(nama=>{
+      if(!nama||nama.trim()==='') return;
+      const key=nama.trim().toUpperCase()+'|'+kls.darjah+'|'+kls.kelas;
+      if(sediaSet.has(key)){ skipped++; return; }
+      sediaSet.add(key); // tambah ke set supaya loop seterusnya tidak duplikat
+      DB.murid.push({
+        id: genId('M'), nama: nama.trim(),
+        darjah: kls.darjah, kelas: kls.kelas,
+        jenis, peringkat, iqraLabel,
+        mukaSurat: ref.dari, bilKhatam: 0,
+        guruId, status: 'Aktif',
+        tarihDaftar: new Date().toISOString(),
+        tarihKemaskini: new Date().toISOString()
+      });
+      added++;
+    });
+  });
+
+  // Dedup selepas seed (keselamatan tambahan)
+  dedupMurid();
+  if(added>0) saveLocal();
+  return {added, skipped};
+}
+
+/* ═══════════════════════════════════════
+   IMPORT EXCEL — Baca & Preview
+═══════════════════════════════════════ */
+let xlsxParsedData = []; // [{nama, darjah, kelas, guruNama}]
+
+function dropExcel(ev){
+  ev.preventDefault();
+  document.getElementById('dropZone').style.borderColor='';
+  document.getElementById('dropZone').style.background='';
+  const file = ev.dataTransfer.files[0];
+  if(file) bacaExcel(file);
+}
+
+function prosesExcel(ev){
+  const file = ev.target.files[0];
+  if(file) bacaExcel(file);
+  ev.target.value='';
+}
+
+function bacaExcel(file){
+  // Guna SheetJS (XLSX) yang diload dari CDN
+  if(typeof XLSX === 'undefined'){
+    showT('Memuatkan library Excel...','');
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+    script.onload = ()=> bacaExcelDenganXLSX(file);
+    script.onerror = ()=> showT('Gagal muatkan library. Semak sambungan internet.','err');
+    document.head.appendChild(script);
+    return;
+  }
+  bacaExcelDenganXLSX(file);
+}
+
+function bacaExcelDenganXLSX(file){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      xlsxParsedData = [];
+      let totalMurid = 0;
+
+      wb.SheetNames.forEach(sheetName=>{
+        const ws = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        if(!rows || rows.length < 3) return;
+
+        // Detect darjah & kelas dari nama sheet (cth: "1J" = Darjah 1 Jauhari)
+        const match = sheetName.match(/^(\d+)([A-Za-z]+)/);
+        let darjah = sheetName, kelas = '';
+        if(match){
+          darjah = 'Darjah ' + match[1];
+          const kelasMap = {'J':'Jauhari','B':'Bestari','C':'Cerdas','A':'Amanah','M':'Mulia','I':'Ikhlas','T':'Taqwa','K':'Kurniaan','N':'Nilam','D':'Dedikasi','S':'Setia'};
+          kelas = kelasMap[match[2].toUpperCase()] || match[2];
+        }
+
+        // Baris 1/2 = tajuk sekolah / guru
+        let guruNama = '';
+        rows.slice(0,4).forEach(row=>{
+          const cell = String(row[0]||'').toUpperCase();
+          if(cell.includes('GURU KELAS') || cell.includes('GURU :')){
+            const parts = String(row[0]).split(':');
+            if(parts[1]) guruNama = parts[1].trim();
+          }
+          // Try row[3] or other cells
+          row.forEach(cell2=>{
+            const s = String(cell2||'').toUpperCase();
+            if(s.includes('GURU KELAS')||s.includes('GURU :')){
+              const pts = s.split(':');if(pts[1]) guruNama=pts[1].trim();
+            }
+          });
+        });
+
+        // Baca nama murid — cari lajur BIL (nombor) dan NAMA MURID
+        let namaCols = [-1];
+        rows.forEach((row, ri)=>{
+          row.forEach((cell, ci)=>{
+            const s = String(cell||'').toUpperCase();
+            if(s==='NAMA MURID'||s==='NAMA') namaCols = [ci];
+          });
+        });
+
+        rows.forEach((row, ri)=>{
+          const bil = row[0];
+          if(!bil || isNaN(parseInt(bil))) return; // skip bukan nombor
+          const namaMurid = String(row[namaCols[0]||1]||'').trim();
+          if(!namaMurid || namaMurid.length < 3) return;
+          if(namaMurid.toUpperCase()==='NAMA MURID') return;
+
+          xlsxParsedData.push({
+            nama: namaMurid,
+            darjah, kelas, guruNama, sheet: sheetName
+          });
+          totalMurid++;
+        });
+      });
+
+      if(!xlsxParsedData.length){
+        showT('Tiada murid ditemui dalam fail. Semak format Excel.','err');
+        return;
+      }
+
+      paparPreviewExcel(totalMurid, wb.SheetNames.length);
+    }catch(err){
+      showT('Ralat baca Excel: '+err.message,'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function paparPreviewExcel(total, sheets){
+  document.getElementById('xlsxInfo').innerHTML =
+    `<span style="color:var(--g2);font-weight:700">✅ ${total} murid</span> dari <b>${sheets} kelas</b> — semak dan tekan Import`;
+
+  // Check duplikat
+  let tbody = '';
+  xlsxParsedData.forEach((m, i)=>{
+    const sedia = DB.murid.find(x=>x.nama===m.nama&&x.darjah===m.darjah&&x.kelas===m.kelas);
+    const status = sedia
+      ? '<span class="bdg bgr">Sudah ada</span>'
+      : '<span class="bdg bg">Baru</span>';
+    tbody += `<tr style="${sedia?'opacity:.5':''}">
+      <td style="text-align:center"><input type="checkbox" ${sedia?'':'checked'} id="imp_${i}"></td>
+      <td class="nc">${esc(m.nama)}</td>
+      <td>${m.darjah}</td><td>${m.kelas}</td>
+      <td>${status}</td></tr>`;
+  });
+
+  document.getElementById('xlsxTbody').innerHTML = tbody;
+  document.getElementById('xlsxPreview').style.display = '';
+  document.getElementById('dropZone').style.display = 'none';
+}
+
+function batalImport(){
+  xlsxParsedData = [];
+  document.getElementById('xlsxPreview').style.display = 'none';
+  document.getElementById('dropZone').style.display = '';
+  document.getElementById('xlsxFile').value = '';
+}
+
+async function sahkanImport(){
+  const jenis = document.getElementById('impJenis').value;
+  const peringkat = document.getElementById('impPeringkat').value;
+  const skipSedia = document.getElementById('impSkipSedia').classList.contains('on');
+  const ref = getRef(jenis, peringkat);
+  const iqraLabel = peringkat + (ref?(ref.j?' ('+ref.j+')':' ('+jenis+')'):'');
+
+  // Kumpul yang dipilih
+  const dipilih = xlsxParsedData.filter((_, i)=>{
+    const chk = document.getElementById('imp_'+i);
+    return chk && chk.checked;
+  });
+
+  if(!dipilih.length){ showT('Tiada murid dipilih','err'); return; }
+
+  const prog = document.getElementById('importProgress');
+  const progText = document.getElementById('importProgressText');
+  const progFill = document.getElementById('importProgressFill');
+  prog.style.display = '';
+
+  let added=0, skipped=0, errors=0;
+
+  for(let i=0; i<dipilih.length; i++){
+    const m = dipilih[i];
+    progText.textContent = `Mengimport ${i+1}/${dipilih.length}: ${m.nama.split(' ')[0]}...`;
+    progFill.style.width = Math.round((i+1)/dipilih.length*100)+'%';
+
+    // Semak duplikat
+    const sedia = DB.murid.find(x=>x.nama===m.nama&&x.darjah===m.darjah&&x.kelas===m.kelas);
+    if(sedia && skipSedia){ skipped++; continue; }
+
+    // Cari guruId dari tugasan kelas (bukan nama dari Excel)
+    let guruId='';
+    const gKelas=DB.guru.find(x=>x.peranan==='guru'&&x.darjah===m.darjah&&x.kelas===m.kelas);
+    if(gKelas) guruId=gKelas.id;
+
+    const muridBaru = {
+      nama:m.nama, darjah:m.darjah, kelas:m.kelas,
+      jenis, peringkat, iqraLabel,
+      mukaSurat: ref?ref.dari:1, bilKhatam:0,
+      guruId, status:'Aktif',
+      tarihDaftar:new Date().toISOString(),
+      tarihKemaskini:new Date().toISOString()
+    };
+
+    // Hantar ke server atau offline
+    const r = await api('addMurid', {murid:muridBaru});
+    if(r.ok){
+      if(!sedia) DB.murid.push({id:r.id||genId('M'),...muridBaru});
+      added++;
+    } else { errors++; }
+
+    // Kecil jeda supaya UI refresh
+    if(i%10===0) await new Promise(res=>setTimeout(res,10));
+  }
+
+  saveLocal();
+  prog.style.display='none';
+  xlsxParsedData=[];
+  document.getElementById('xlsxPreview').style.display='none';
+  document.getElementById('dropZone').style.display='';
+
+  renderMurid();populateSels();renderDash();
+  showT(`✅ Import selesai! ${added} ditambah${skipped?' | '+skipped+' dilangkau':''}${errors?' | '+errors+' gagal':''}`, 'ok', 5000);
+}
+
+function rkTglChk2(id){
+  const el=document.getElementById(id);
+  if(el.classList.contains('on')){el.classList.remove('on');el.textContent='';}
+  else{el.classList.add('on');el.textContent='✓';}
+}
+
+/* ═══════════════════════════════════════
+   SENARAI GURU SKDK — DATA TETAP
+   Guru mengajar lebih dari satu kelas
+   disenaraikan di setiap kelas mereka
+═══════════════════════════════════════ */
+const GURU_SKDK = [
+  // ID unik setiap guru (berdasarkan nama)
+  {id:'GS001',nama:'HIDAYATUN NAJAH BINTI MOHD MASHUTI',singkat:'Hidayatun Najah',
+   kelas:[{darjah:'Darjah 1',kelas:'Jauhari'},{darjah:'Darjah 6',kelas:'Jauhari'}],
+   peranan:'guru'},
+  {id:'GS002',nama:'FUZI BINTI MAT ROBI',singkat:'Fuzi Mat Robi',
+   kelas:[{darjah:'Darjah 1',kelas:'Jauhari'},{darjah:'Darjah 6',kelas:'Jauhari'}],
+   peranan:'guru'},
+  {id:'GS003',nama:'RUHAYA BINTI IBRAHIM',singkat:'Ruhaya Ibrahim',
+   kelas:[{darjah:'Darjah 2',kelas:'Jauhari'},{darjah:'Darjah 5',kelas:'Jauhari'}],
+   peranan:'guru'},
+  {id:'GS004',nama:'MUHAMMAD ADAM AIMAN BIN ABAS',singkat:'Adam Aiman',
+   kelas:[{darjah:'Darjah 2',kelas:'Jauhari'},{darjah:'Darjah 4',kelas:'Jauhari'}],
+   peranan:'guru'},
+  {id:'GS005',nama:'NIK KHADIJAH BINTI NIK MAHMUD',singkat:'Nik Khadijah',
+   kelas:[{darjah:'Darjah 3',kelas:'Jauhari'}],peranan:'guru'},
+  {id:'GS006',nama:'NORIMAH BINTI ABD KADIR',singkat:'Norimah Abd Kadir',
+   kelas:[{darjah:'Darjah 3',kelas:'Jauhari'}],peranan:'guru'},
+  {id:'GS007',nama:'MUHAMMAD HAFIZUDDIN BIN YUSOF',singkat:'Hafizuddin Yusof',
+   kelas:[{darjah:'Darjah 4',kelas:'Jauhari'}],peranan:'guru'},
+  {id:'GS008',nama:'MOHD JANNATUN NAIM BIN HASSAN',singkat:'Jannatun Naim',
+   kelas:[{darjah:'Darjah 5',kelas:'Jauhari'}],peranan:'guru'},
+  {id:'GS009',nama:'WAN HAJAR BINTI KHAIRUDDIN',singkat:'Wan Hajar',
+   kelas:[{darjah:'Darjah 5',kelas:'Jauhari'}],peranan:'guru'},
+];
+
+const WARNA_KELAS={
+  'Darjah 1':'kelas-1','Darjah 2':'kelas-2','Darjah 3':'kelas-3',
+  'Darjah 4':'kelas-4','Darjah 5':'kelas-5','Darjah 6':'kelas-6'
+};
+
+/* ── Login Tab Switch ── */
+function switchLoginTab(tab){
+  document.getElementById('tabGuru').classList.toggle('active',tab==='guru');
+  document.getElementById('tabAdmin').classList.toggle('active',tab==='admin');
+  document.getElementById('panelGuru').style.display=tab==='guru'?'':'none';
+  document.getElementById('panelAdmin').style.display=tab==='admin'?'':'none';
+}
+
+/* ── Render Grid Nama Guru ── */
+function renderGuruGrid(){
+  const grid=document.getElementById('guruGrid');
+  if(!grid)return;
+  grid.innerHTML=GURU_SKDK.map(g=>{
+    const inisial=g.singkat.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const kelasBadges=g.kelas.map(k=>`<span class="kelas-badge ${WARNA_KELAS[k.darjah]||'kelas-1'}">${k.darjah}</span>`).join(' ');
+    return`<div class="guru-btn" onclick="loginGuru('${g.id}')">
+      <div class="gav">${inisial}</div>
+      <div class="gnm">${g.singkat}</div>
+      <div class="gkl">${kelasBadges}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── Login Guru — 1 Klik ── */
+async function loginGuru(guruId){
+  const guru=GURU_SKDK.find(g=>g.id===guruId);
+  if(!guru)return;
+
+  // Jika guru mengajar lebih 1 kelas, tanya pilih kelas mana
+  if(guru.kelas.length>1){
+    const pil=await tanyaKelas(guru);
+    if(!pil)return;
+    guru._kelasSemasa=pil;
+  } else {
+    guru._kelasSemasa=guru.kelas[0];
+  }
+
+  // Set sebagai current user terus (tanpa perlu username/password)
+  CU={
+    id: guru.id,
+    nama: guru.nama,
+    email: guru.id.toLowerCase(),
+    peranan: 'guru',
+    darjah: guru._kelasSemasa.darjah,
+    kelas: guru._kelasSemasa.kelas,
+    _guruData: guru
+  };
+
+  // Simpan sesi
+  simpanSesi(CU);
+  localStorage.setItem('skdk_last_email', guru.id);
+
+  // Pastikan guru ada dalam DB tempatan
+  if(!DB.guru.find(g=>g.id===guru.id)){
+    DB.guru.push({
+      id:guru.id, nama:guru.nama, email:guru.id.toLowerCase(),
+      username:guru.id.toLowerCase(), peranan:'guru',
+      darjah:guru._kelasSemasa.darjah, kelas:guru._kelasSemasa.kelas,
+      status:'Aktif'
+    });
+    saveLocal();
+  }
+
+  await masukApps();
+}
+
+/* ── Dialog Pilih Kelas (untuk guru 2 kelas) ── */
+function tanyaKelas(guru){
+  return new Promise(resolve=>{
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    const box=document.createElement('div');
+    box.style.cssText='background:white;border-radius:20px;padding:24px;width:min(340px,100%);box-shadow:0 20px 60px rgba(0,0,0,.3)';
+    const kelasBtns=guru.kelas.map(k=>`
+      <button onclick="this.closest('.pkOverlay').dataset.pick='${k.darjah}|||${k.kelas}';this.closest('.pkOverlay').click()"
+        style="width:100%;padding:14px;margin-bottom:8px;border:1.5px solid #e5e7eb;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;background:white;display:flex;align-items:center;gap:10px">
+        <span style="background:#e8f5e9;color:#1b5e20;padding:4px 10px;border-radius:8px;font-size:12px">${k.darjah}</span>
+        <span>${k.kelas}</span>
+      </button>`).join('');
+    box.innerHTML=`
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:24px;margin-bottom:6px">🏫</div>
+        <div style="font-size:15px;font-weight:700;color:#1f2937">Pilih Kelas Anda</div>
+        <div style="font-size:12px;color:#6b7280;margin-top:3px">${guru.singkat}</div>
+      </div>
+      ${kelasBtns}
+      <button onclick="this.closest('.pkOverlay').dataset.pick='cancel';this.closest('.pkOverlay').click()"
+        style="width:100%;padding:10px;border:none;background:#f3f4f6;border-radius:10px;font-size:13px;color:#6b7280;cursor:pointer;margin-top:4px">Batal</button>`;
+    overlay.classList.add('pkOverlay');
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click',e=>{
+      if(e.target===overlay||e.target.tagName==='BUTTON'){
+        const pick=overlay.dataset.pick;
+        document.body.removeChild(overlay);
+        if(!pick||pick==='cancel'){resolve(null);return;}
+        const[d,k]=pick.split('|||');
+        resolve({darjah:d,kelas:k});
+      }
+    });
+  });
+}
+
+/* ═══════════════════════════════════════
+   AUTO-LOGIN — Simpan sesi dalam HP
+   Guru buka apps terus masuk tanpa login
+═══════════════════════════════════════ */
+function simpanSesi(user){
+  localStorage.setItem('skdk_session', JSON.stringify({
+    user, masa: Date.now()
+  }));
+}
+
+function muatSesi(){
+  try{
+    const raw = localStorage.getItem('skdk_session');
+    if(!raw) return null;
+    const sesi = JSON.parse(raw);
+    // Sesi kekal 365 hari (guru tak perlu login semula)
+    const hadSesi = 365 * 24 * 60 * 60 * 1000;
+    if(Date.now() - sesi.masa > hadSesi){
+      localStorage.removeItem('skdk_session');
+      return null;
+    }
+    return sesi.user;
+  }catch(e){ return null; }
+}
+
+function padamSesi(){
+  localStorage.removeItem('skdk_session');
+}
+
+// Override doLogin untuk simpan sesi
+const _doLoginAsal = doLogin;
+async function doLogin(){
+  const u = document.getElementById('lUser').value.trim();
+  const p = document.getElementById('lPass').value;
+  if(!u||!p){showT('Sila isi email dan kata laluan','err');return;}
+  const r = await api('login',{username:u, password:p});
+  if(!r.ok){showT(r.msg||'Login gagal','err');return;}
+  CU = r.user;
+  simpanSesi(CU); // ← simpan sesi supaya tak perlu login lagi
+  localStorage.setItem('skdk_last_email', u); // ← ingat email untuk kemudahan
+  await masukApps();
+}
+
+// Override doLogout untuk padam sesi
+function doLogout(){
+  padamSesi(); // ← padam sesi semasa log keluar
+  CU = null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('lUser').value='';
+  document.getElementById('lPass').value='';
+  showT('Anda telah log keluar','');
+}
+
+async function masukApps(){
+  // Sorok semua skrin login/config
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('configScreen').classList.add('hidden');
+  document.getElementById('app').style.display='flex';
+
+  // Set nama & role dalam sidebar
+  document.getElementById('sbAv').textContent = ini(CU.nama);
+  document.getElementById('sbNama').textContent = CU.nama;
+  const kelasLabel = CU.darjah&&CU.kelas ? CU.darjah+' '+CU.kelas : '';
+  document.getElementById('sbRole').textContent = CU.peranan==='admin'
+    ? 'Pentadbir SK Datin Khadijah'
+    : 'Guru'+(kelasLabel?' — '+kelasLabel:'');
+
+  // Tunjuk butang Tukar Kelas jika guru mengajar lebih 1 kelas
+  const guruData=GURU_SKDK.find(g=>g.id===CU.id);
+  const btnTK=document.getElementById('btnTukarKelas');
+  if(btnTK) btnTK.style.display=(CU.peranan==='guru'&&guruData&&guruData.kelas.length>1)?'':'none';
+
+  // Tunjuk/sembunyi menu admin
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display = CU.peranan==='admin' ? '' : 'none';
+  });
+
+  // Set nama guru dalam form
+  document.getElementById('rkGr').value = CU.nama;
+  document.getElementById('ktGr').value = CU.nama;
+  document.getElementById('setUrl').value = API_URL||'';
+
+  // Kalau guru (bukan admin), terus ke skrin Rekod Bacaan
+  if(CU.peranan === 'guru'){
+    navTo('rekod', document.querySelector('.ni:nth-child(2)'));
+    // Auto-pilih darjah kelas guru
+    if(CU.darjah){
+      const rkD = document.getElementById('rkD');
+      if(rkD) rkD.value = CU.darjah;
+    }
+  }
+
+  // Muat data dari server/offline
+  const dr = await api('getAll',{userId:CU.id, peranan:CU.peranan});
+  if(dr.ok){
+    DB.guru = dr.data.guru||[];
+    DB.murid = dr.data.murid||[];
+    DB.rekod = dr.data.rekod||[];
+    DB.khatam = dr.data.khatam||[];
+    saveLocal();
+  }
+  alertDays = parseInt((dr.ok&&dr.data.config?.alertDays)||7);
+
+  // ── SEED murid & guru SKDK jika DB kosong — untuk SEMUA pengguna ──
+  let seeded = false;
+  if(DB.murid.filter(m=>m.status==='Aktif').length === 0){
+    const {added} = seedMuridSKDK();
+    if(added > 0){
+      seeded = true;
+      showT('📚 '+added+' murid SK Datin Khadijah dimuatkan!','ok',4000);
+    }
+  }
+
+  // Sentiasa seed guru (selamat dipanggil berulang kali)
+  seedGuruSKDK();
+
+  // Sync ke Google Sheets jika baru seed
+  if(seeded && API_URL && !IS_OFFLINE){
+    setTimeout(()=> syncData(), 2000);
+  }
+
+  initApp();
+
+  // Tunjuk sambutan mengikut masa
+  const jam = new Date().getHours();
+  const salam = jam<12?'Selamat Pagi':jam<15?'Selamat Tengahari':jam<19?'Selamat Petang':'Selamat Malam';
+  const peringkat = CU.peranan==='guru'&&CU.darjah ? ` — ${CU.darjah} ${CU.kelas||''}` : '';
+  showT(`${salam}, ${CU.nama.split(' ')[0]}! 👋${peringkat}`, 'ok', 3500);
+}
+
+/* ═══════════════════════════════════════
+   BOOT — Auto-detect sesi tersimpan
+═══════════════════════════════════════ */
+// ── Daftarkan Service Worker (PWA offline support) ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('[PWA] Service worker berjaya:', reg.scope))
+      .catch(err => console.log('[PWA] Service worker gagal:', err));
+  });
+}
+
+// ── Tunjuk prompt "Install App" pada Android ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Tunjuk butang install dalam app
+  const btn = document.getElementById('btnInstallPWA');
+  if (btn) btn.style.display = 'flex';
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  const btn = document.getElementById('btnInstallPWA');
+  if (btn) btn.style.display = 'none';
+  showT('✅ Tasmik SKDK berjaya dipasang!', 'ok', 4000);
+});
+
+function installPWA() {
+  if (!deferredPrompt) {
+    showT('Guna Chrome pada Android untuk install. iPhone: tap Share → Add to Home Screen', '', 5000);
+    return;
+  }
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(result => {
+    if (result.outcome === 'accepted') showT('✅ Apps sedang dipasang...', 'ok', 3000);
+    deferredPrompt = null;
+  });
+}
+
+loadConfig();
+
+(async function boot(){
+  // Render grid nama guru dahulu (selalu)
+  renderGuruGrid();
+
+  // Semak sesi tersimpan dalam HP
+  const sesiLepas = muatSesi();
+
+  if(sesiLepas){
+    // ✅ Ada sesi — terus masuk tanpa login!
+    CU = sesiLepas;
+    document.getElementById('configScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.add('hidden');
+    await masukApps();
+    if(IS_OFFLINE){
+      updateSyncStatus(false);
+      document.getElementById('syncBanner').classList.add('show');
+    }
+  } else if(API_URL || IS_OFFLINE){
+    // Ada URL tapi tiada sesi — tunjuk login dengan grid guru
+    document.getElementById('configScreen').classList.add('hidden');
+    if(IS_OFFLINE){
+      updateSyncStatus(false);
+      document.getElementById('apiStatus').className='api-status offline';
+      document.getElementById('apiDot').className='api-dot dot-offline';
+      document.getElementById('apiStatusText').textContent='Mod Offline — Tap nama untuk masuk';
+    }
+  }
+  // else: tunjuk config screen (URL belum set)
+})();
+</script>
+</body>
+</html>
