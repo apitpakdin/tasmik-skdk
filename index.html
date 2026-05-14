@@ -364,6 +364,15 @@ html,body{height:100%;font-family:var(--font);background:var(--gray0);}
   /* Rekod hari ini — pindah ke bawah, tinggi terhad */
   #todayList{max-height:300px!important;}
 
+  /* Senarai murid lebih pendek pada mobile */
+  #rkMuridList{max-height:140px!important;}
+
+  /* M/S Dari/Ke — kekalkan 2 kolum (penting untuk UX) */
+  #sc-rekod div[style*="grid-template-columns:1fr 1fr;gap:8px"]{
+    display:grid!important;
+    flex-direction:unset!important;
+  }
+
   /* Table overflow */
   .dt{font-size:12px;}
   .dt td,.dt th{padding:7px 8px!important;}
@@ -581,99 +590,114 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
       <!-- REKOD -->
       <div class="screen" id="sc-rekod">
         <div id="rkGrid" class="grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+
+          <!-- KOLUM KIRI: FORM REKOD -->
           <div>
             <div class="card">
-              <div class="ch"><h3>📋 Rekod Bacaan Baharu</h3></div>
-              <div class="cb">
+              <div class="ch"><h3>📋 Rekod Bacaan</h3></div>
+              <div class="cb" style="padding:12px">
 
-                <!-- PILIH MURID — UI baharu -->
-                <div class="fg" style="margin-bottom:14px">
-                  <div class="fl" style="margin-bottom:8px">Pilih Murid</div>
-
-                  <!-- Filter Darjah + Kelas -->
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-                    <select class="fc" id="rkD" onchange="rkFiltMurid()" style="font-size:13px">
+                <!-- PILIH MURID -->
+                <div class="fg" style="margin-bottom:10px">
+                  <div class="fl" style="margin-bottom:6px">Murid</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+                    <select class="fc" id="rkD" onchange="rkFiltMurid()" style="font-size:12px;padding:7px 10px">
                       <option value="">Semua Darjah</option>
                       <option>Darjah 1</option><option>Darjah 2</option><option>Darjah 3</option>
                       <option>Darjah 4</option><option>Darjah 5</option><option>Darjah 6</option>
                     </select>
-                    <select class="fc" id="rkK" onchange="rkFiltMurid()" style="font-size:13px">
+                    <select class="fc" id="rkK" onchange="rkFiltMurid()" style="font-size:12px;padding:7px 10px">
                       <option value="">Semua Kelas</option>
                     </select>
                   </div>
-
-                  <!-- Carian nama -->
-                  <input class="fc" id="rkCari" placeholder="🔍 Taip nama murid..." oninput="rkFiltMurid()" style="margin-bottom:8px">
-
-                  <!-- Chip kumpulan — muncul jika ada kumpulan -->
-                  <div id="kumpulanFilter" style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px"></div>
-
-                  <!-- Senarai murid sebagai kad boleh tap -->
-                  <div id="rkMuridList" style="max-height:260px;overflow-y:auto;border:1.5px solid var(--gray2);border-radius:var(--r-md);background:white">
-                    <div style="padding:14px;text-align:center;color:var(--gray4);font-size:13px">Pilih darjah atau taip nama</div>
+                  <input class="fc" id="rkCari" placeholder="🔍 Cari nama..." oninput="rkFiltMurid()" style="margin-bottom:6px;font-size:13px">
+                  <div id="kumpulanFilter" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px"></div>
+                  <div id="rkMuridList" style="max-height:180px;overflow-y:auto;border:1.5px solid var(--gray2);border-radius:var(--r-md);background:white">
+                    <div style="padding:12px;text-align:center;color:var(--gray4);font-size:12px">Pilih darjah atau taip nama</div>
                   </div>
-
-                  <!-- Murid terpilih -->
-                  <div id="rkMuridPilih" style="display:none;background:var(--g7);border:1.5px solid var(--g4);border-radius:var(--r-md);padding:10px 12px;margin-top:8px;display:flex;align-items:center;justify-content:space-between">
+                  <div id="rkMuridPilih" style="display:none;background:var(--g7);border:1.5px solid var(--g4);border-radius:var(--r-md);padding:8px 10px;margin-top:6px;display:flex;align-items:center;justify-content:space-between">
                     <div>
                       <div style="font-size:13px;font-weight:700;color:var(--g1)" id="rkMuridNama">—</div>
-                      <div style="font-size:11px;color:var(--g2);margin-top:2px" id="rkMuridInfo">—</div>
+                      <div style="font-size:11px;color:var(--g2);margin-top:1px" id="rkMuridInfo">—</div>
                     </div>
                     <button onclick="rkClearMurid()" style="background:none;border:none;font-size:16px;cursor:pointer;color:var(--gray4)">✕</button>
                   </div>
-                  <!-- Hidden select untuk backward compat -->
                   <select id="rkM" style="display:none" onchange="rkOnMurid()"></select>
                 </div>
 
-                <!-- Progress bar -->
-                <div class="pw" id="rkPW" style="display:none;margin-bottom:8px"><div class="pf" id="rkPF" style="width:0%"></div></div>
-                <div class="pl" id="rkPL" style="margin-bottom:8px"></div>
+                <div class="pw" id="rkPW" style="display:none;margin-bottom:6px"><div class="pf" id="rkPF" style="width:0%"></div></div>
+                <div class="pl" id="rkPL" style="margin-bottom:6px;font-size:12px"></div>
 
-                <!-- Jenis Bacaan -->
-                <div class="fg">
-                  <div class="fl">Jenis Bacaan</div>
-                  <div class="jp">
-                    <div class="jpb ab" id="jbB" onclick="rkJenis('Iqra Baru')">📘 Iqra Baru</div>
-                    <div class="jpb" id="jbL" onclick="rkJenis('Iqra Lama')">📕 Iqra Lama</div>
-                    <div class="jpb" id="jbQ" onclick="rkJenis('Al-Quran')">📗 Al-Quran</div>
+                <!-- JENIS BACAAN -->
+                <div class="fg" style="margin-bottom:8px">
+                  <div class="fl" style="margin-bottom:5px">Jenis Bacaan</div>
+                  <div class="jp" style="gap:5px">
+                    <div class="jpb ab" id="jbB" onclick="rkJenis('Iqra Baru')" style="padding:7px 10px;font-size:12px">📘 Iqra Baru</div>
+                    <div class="jpb" id="jbL" onclick="rkJenis('Iqra Lama')" style="padding:7px 10px;font-size:12px">📕 Iqra Lama</div>
+                    <div class="jpb" id="jbQ" onclick="rkJenis('Al-Quran')" style="padding:7px 10px;font-size:12px">📗 Al-Quran</div>
                   </div>
                 </div>
-                <div class="fg" id="rkPGrp">
-                  <div class="fl">Peringkat</div>
-                  <select class="fc" id="rkP" onchange="rkRange()">
+
+                <!-- PERINGKAT -->
+                <div class="fg" id="rkPGrp" style="margin-bottom:8px">
+                  <div class="fl" style="margin-bottom:4px">Peringkat</div>
+                  <select class="fc" id="rkP" onchange="rkRange()" style="font-size:13px;padding:7px 10px">
                     <option>Iqra 1</option><option>Iqra 2</option><option>Iqra 3</option>
                     <option>Iqra 4</option><option>Iqra 5</option><option>Iqra 6</option>
                   </select>
                 </div>
-                <div class="fg">
-                  <div class="fl">Iqra/Juzuk <span class="fhint" id="rkRH"></span></div>
-                  <input class="fc" id="rkIL" readonly style="background:var(--gray0);color:var(--gray5)">
+
+                <!-- IQRA LABEL -->
+                <div class="fg" style="margin-bottom:8px">
+                  <div class="fl" style="margin-bottom:4px">Iqra/Juzuk <span class="fhint" id="rkRH"></span></div>
+                  <input class="fc" id="rkIL" readonly style="background:var(--gray0);color:var(--gray5);font-size:13px;padding:7px 10px">
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px">
-                  <div class="fg" style="margin:0"><div class="fl">M/S Dari</div><input class="fc" type="number" id="rkDr" oninput="rkHitung()"></div>
-                  <div class="fg" style="margin:0"><div class="fl">M/S Ke</div><input class="fc" type="number" id="rkKe" oninput="rkHitung()"></div>
+
+                <!-- M/S DARI & KE — satu baris -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
+                  <div class="fg" style="margin:0">
+                    <div class="fl" style="margin-bottom:4px">M/S Dari</div>
+                    <input class="fc" type="number" id="rkDr" oninput="rkHitung()" style="font-size:14px;padding:8px 10px;font-weight:700">
+                  </div>
+                  <div class="fg" style="margin:0">
+                    <div class="fl" style="margin-bottom:4px">M/S Ke</div>
+                    <input class="fc" type="number" id="rkKe" oninput="rkHitung()" style="font-size:14px;padding:8px 10px;font-weight:700">
+                  </div>
                 </div>
                 <div class="juz-b" id="rkJB"></div>
                 <div class="warn-b" id="rkWB"></div>
-                <div class="jml-h" id="rkJH"></div>
-                <div class="dvd"></div>
-                <div class="fg">
-                  <div class="fl">Kualiti</div>
-                  <div class="qgrid">
-                    <div class="qb qc active" onclick="rkQ('Cemerlang ⭐⭐⭐',this)">⭐⭐⭐ Cemerlang<br><small>Lancar & Tepat</small></div>
-                    <div class="qb qk" onclick="rkQ('Baik ⭐⭐',this)">⭐⭐ Baik<br><small>Kesilapan kecil</small></div>
-                    <div class="qb qu" onclick="rkQ('Perlu Ulang ⭐',this)">⭐ Perlu Ulang<br><small>Banyak kesilapan</small></div>
-                    <div class="qb ql" onclick="rkQ('Belum Lulus ❌',this)">❌ Belum Lulus<br><small>Latihan semula</small></div>
+                <div class="jml-h" id="rkJH" style="font-size:12px;margin-bottom:8px"></div>
+
+                <div class="dvd" style="margin:8px 0"></div>
+
+                <!-- KUALITI -->
+                <div class="fg" style="margin-bottom:8px">
+                  <div class="fl" style="margin-bottom:5px">Kualiti</div>
+                  <div class="qgrid" style="gap:6px">
+                    <div class="qb qc active" onclick="rkQ('Cemerlang ⭐⭐⭐',this)" style="padding:8px 6px;font-size:12px">⭐⭐⭐ Cemerlang<br><small style="font-size:10px">Lancar & Tepat</small></div>
+                    <div class="qb qk" onclick="rkQ('Baik ⭐⭐',this)" style="padding:8px 6px;font-size:12px">⭐⭐ Baik<br><small style="font-size:10px">Kesilapan kecil</small></div>
+                    <div class="qb qu" onclick="rkQ('Perlu Ulang ⭐',this)" style="padding:8px 6px;font-size:12px">⭐ Perlu Ulang<br><small style="font-size:10px">Banyak kesilapan</small></div>
+                    <div class="qb ql" onclick="rkQ('Belum Lulus ❌',this)" style="padding:8px 6px;font-size:12px">❌ Belum Lulus<br><small style="font-size:10px">Latihan semula</small></div>
                   </div>
                 </div>
-                <div class="fg"><div class="fl">Nama Guru</div><input class="fc" id="rkGr" placeholder="Auto dari login"></div>
-                <div class="fg"><div class="fl">Catatan</div><input class="fc" id="rkCt" placeholder="cth: Perlu latih huruf ع"></div>
-                <div class="cr" onclick="rkTglChk('rkC1')"><div class="cb2 on" id="rkC1">✓</div><div class="cl">Kemaskini kedudukan murid auto</div></div>
-                <div class="cr" onclick="rkTglChk('rkC2')"><div class="cb2" id="rkC2"></div><div class="cl">Naik ke peringkat seterusnya</div></div>
-                <div style="margin-top:12px"><button class="btn btn-p" style="width:100%;padding:14px;font-size:15px" onclick="rkSimpan()">✅ Simpan Rekod</button></div>
+
+                <!-- GURU & CATATAN -->
+                <div class="fg" style="margin-bottom:6px"><div class="fl" style="margin-bottom:4px">Nama Guru</div><input class="fc" id="rkGr" placeholder="Auto dari login" style="font-size:13px;padding:7px 10px"></div>
+                <div class="fg" style="margin-bottom:8px"><div class="fl" style="margin-bottom:4px">Catatan</div><input class="fc" id="rkCt" placeholder="cth: Perlu latih huruf ع" style="font-size:13px;padding:7px 10px"></div>
+
+                <!-- CHECKBOX -->
+                <div class="cr" onclick="rkTglChk('rkC1')" style="padding:5px 0"><div class="cb2 on" id="rkC1">✓</div><div class="cl" style="font-size:12px">Kemaskini kedudukan murid auto</div></div>
+                <div class="cr" onclick="rkTglChk('rkC2')" style="padding:5px 0"><div class="cb2" id="rkC2"></div><div class="cl" style="font-size:12px">Naik ke peringkat seterusnya</div></div>
+
+                <!-- BUTANG SIMPAN -->
+                <div style="margin-top:10px">
+                  <button class="btn btn-p" style="width:100%;padding:13px;font-size:15px;font-weight:700" onclick="rkSimpan()">✅ Simpan Rekod</button>
+                </div>
               </div>
             </div>
           </div>
+
+          <!-- KOLUM KANAN: REKOD HARI INI -->
           <div class="card">
             <div class="ch">
               <h3>📋 Rekod Hari Ini</h3>
@@ -684,6 +708,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
             </div>
             <div class="cb np" id="todayList" style="max-height:600px;overflow-y:auto"></div>
           </div>
+
         </div>
       </div>
 
