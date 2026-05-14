@@ -1618,7 +1618,6 @@ function initApp(){
 const PM={dash:'Dashboard',rekod:'Rekod Bacaan',khatam:'Rekod Khatam',laporan:'Laporan & Analisis',alert:'Amaran Murid',murid:'Pengurusan Murid',guru:'Pengurusan Guru',tahun:'Tukar Tahun',export:'Export Data',tetapan:'Tetapan'};
 
 function navTo(s,el){
-  // "Guru" terus ke Laporan tab Per Guru
   if(s==='guru'){
     navTo('laporan',el);
     activeLapTab='G';
@@ -1643,6 +1642,8 @@ function navTo(s,el){
   if(s==='murid'){renderMurid();populateSels();}
   if(s==='tahun')renderTahunPage();
   if(s==='tetapan')updateStatsTetapan();
+  // Fix mobile layout selepas navigate
+  setTimeout(fixMobileLayout, 100);
 }
 
 function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('ov').classList.add('show');}
@@ -3681,11 +3682,6 @@ function fixMobileLayout(){
   }
 }
 window.addEventListener('resize', fixMobileLayout);
-const _navToAsal = navTo;
-function navTo(s, el){
-  _navToAsal(s, el);
-  setTimeout(fixMobileLayout, 100);
-}
 
 // ── Daftarkan Service Worker (PWA offline support) ──
 if ('serviceWorker' in navigator) {
