@@ -298,81 +298,75 @@ html,body{height:100%;font-family:var(--font);background:var(--gray0);}
   #sidebar.open{transform:translateX(0);}
   .hbg{display:block;}
   #mc{padding:10px;}
-  .stat-row{grid-template-columns:1fr 1fr;}
   .fgrid{grid-template-columns:1fr;}
 }
-@media(max-width:600px){
-  /* Semua grid 2 kolum → 1 kolum */
-  .stat-row{grid-template-columns:1fr 1fr;}
-  .fgrid{grid-template-columns:1fr;}
-  .qgrid{grid-template-columns:1fr 1fr;}
 
-  /* Rekod bacaan — kolum jadi satu kolum penuh */
-  #sc-rekod > div[style*="grid-template-columns"]{
-    display:block!important;
-  }
-  #sc-rekod > div > div{
-    margin-bottom:12px;
+/* ══ MOBILE — satu kolum untuk semua ══ */
+@media(max-width:640px){
+
+  /* KELAS grid-2col — tukar jadi flex column pada mobile */
+  .grid-2col{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:12px!important;
   }
 
-  /* Khatam — kolum jadi satu kolum */
-  #sc-khatam > div[style*="grid-template-columns"]{
-    display:block!important;
-  }
-  #sc-khatam > div > div{
-    margin-bottom:12px;
-  }
-
-  /* Dashboard carta — satu kolum */
-  #sc-dash > div[style*="grid-template-columns:1fr 1fr"]{
-    display:block!important;
-  }
-  #sc-dash > div[style*="grid-template-columns:1fr 1fr"] > .card{
-    margin-bottom:12px;
+  /* PAKSA semua grid jadi satu kolum */
+  #mw [style*="grid-template-columns"]{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:12px!important;
   }
 
-  /* Modal — skrin penuh bawah */
-  .mb2{border-radius:var(--r-lg) var(--r-lg) 0 0;align-self:flex-end;width:100%;max-height:92vh;}
-  .mo{align-items:flex-end;padding:0;}
-
-  /* Topbar lebih kecil */
-  .pt{font-size:15px;}
-  .ps{font-size:11px;}
-  .tb-btn{padding:7px 10px;font-size:11px;}
-
-  /* Murid list — text lebih kecil */
-  .mk-nama{font-size:12px;}
-  .mk-sub{font-size:10px;}
-
-  /* Form dalam rekod */
-  #sc-rekod .cb{padding:12px;}
-}
-@media(max-width:480px){
-  .mb2{border-radius:var(--r-lg) var(--r-lg) 0 0;align-self:flex-end;width:100%;max-height:95vh;}
-  .mo{align-items:flex-end;padding:0;}
-  .stat-row{grid-template-columns:1fr 1fr;}
-  #mc{padding:8px;}
-
-  /* Semua inline grid jadi satu kolum */
-  div[style*="grid-template-columns:1fr 1fr"]{
-    display:block!important;
+  /* Kecualikan: stat row (2 kolum OK), quick action (2x2), quality grid, kumpulan chips */
+  .stat-row{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    flex-direction:unset!important;
   }
-  div[style*="grid-template-columns:1fr 1.3fr"]{
-    display:block!important;
+  #quickActions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    flex-direction:unset!important;
   }
-  div[style*="grid-template-columns:1fr 1fr"] > *,
-  div[style*="grid-template-columns:1fr 1.3fr"] > *{
-    margin-bottom:12px;
+  .qgrid{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    flex-direction:unset!important;
+  }
+  .jp{
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:wrap!important;
+  }
+  .fgrid{
+    display:flex!important;
+    flex-direction:column!important;
   }
 
-  /* Laporan tab — scroll mendatar */
-  #sc-laporan > div:first-child{
-    gap:4px;
-  }
-  .tab-b{padding:8px 10px;font-size:12px;}
+  /* Padding lebih kecil */
+  .cb{padding:12px!important;}
+  #mc{padding:8px!important;}
+  .bab-header,.bab-body{padding:12px!important;}
 
-  /* Export screen */
-  #sc-export .fgrid{grid-template-columns:1fr;}
+  /* Modal dari bawah */
+  .mb2{border-radius:var(--r-lg) var(--r-lg) 0 0!important;align-self:flex-end!important;width:100%!important;max-height:92vh!important;}
+  .mo{align-items:flex-end!important;padding:0!important;}
+
+  /* Topbar */
+  .pt{font-size:14px;}
+  .tb-btn span{display:none;}
+  .tb-btn{padding:8px!important;}
+
+  /* Tab laporan */
+  .tab-b{padding:8px 10px!important;font-size:11px!important;}
+
+  /* Rekod hari ini — pindah ke bawah, tinggi terhad */
+  #todayList{max-height:300px!important;}
+
+  /* Table overflow */
+  .dt{font-size:12px;}
+  .dt td,.dt th{padding:7px 8px!important;}
 }
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:3px;}
@@ -559,7 +553,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
         </div>
 
         <div class="stat-row" id="dashStats"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+        <div class="grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
           <div class="card">
             <div class="ch"><h3>📈 Sesi Minggu Ini</h3><span style="font-size:11px;color:var(--gray4)">Isnin–Jumaat</span></div>
             <div class="cb" id="wkChart"></div>
@@ -569,7 +563,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
             <div class="cb" id="moChart"></div>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <div class="card">
             <div class="ch"><h3>⚠️ Perlu Perhatian</h3><span class="bdg br" id="dashAlertCount">0</span></div>
             <div class="cb" style="max-height:240px;overflow-y:auto;padding:12px" id="dashAlerts"></div>
@@ -586,7 +580,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 
       <!-- REKOD -->
       <div class="screen" id="sc-rekod">
-        <div id="rkGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+        <div id="rkGrid" class="grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
           <div>
             <div class="card">
               <div class="ch"><h3>📋 Rekod Bacaan Baharu</h3></div>
@@ -695,7 +689,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 
       <!-- KHATAM -->
       <div class="screen" id="sc-khatam">
-        <div style="display:grid;grid-template-columns:1fr 1.3fr;gap:14px;align-items:start">
+        <div class="grid-2col" style="display:grid;grid-template-columns:1fr 1.3fr;gap:14px;align-items:start">
           <div>
             <div class="kt-hero"><div class="trophy">🏆</div><h2>Rekod Khatam Al-Quran</h2><p>SK Datin Khadijah</p></div>
             <div class="card">
@@ -792,7 +786,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
       <!-- TAHUN -->
       <div class="screen" id="sc-tahun">
         <div class="yr-card"><h3>📅 Pengurusan Tahun Akademik</h3><p>Bawa murid ke tahun baru, tukar kelas dan guru secara automatik</p></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="grid-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <div class="card"><div class="ch"><h3>🔄 Bawa ke Tahun Hadapan</h3></div>
             <div class="cb">
               <p style="font-size:12px;color:var(--gray5);margin-bottom:12px">Naikkan darjah semua murid aktif. Darjah 6 akan ditanda Tamat.</p>
@@ -3645,45 +3639,23 @@ async function masukApps(){
 /* ═══════════════════════════════════════
    BOOT — Auto-detect sesi tersimpan
 ═══════════════════════════════════════ */
-// ── Mobile Layout Fix — tukar semua grid 2 kolum jadi 1 kolum ──
+// ── Mobile Layout Fix ──
 function fixMobileLayout(){
-  const isMobile = window.innerWidth <= 600;
-
-  // Grid rekod dan khatam — 1 kolum pada mobile
+  const isMobile = window.innerWidth <= 640;
   const rkGrid = document.getElementById('rkGrid');
-  if(rkGrid) rkGrid.style.gridTemplateColumns = isMobile ? '1fr' : '1fr 1fr';
-
-  if(!isMobile) return;
-
-  // Cari semua div dengan inline grid 2 kolum dan tukar jadi block
-  document.querySelectorAll('div[style]').forEach(el=>{
-    const s = el.style.cssText || el.getAttribute('style') || '';
-    if(
-      s.includes('grid-template-columns') && (
-        s.includes('1fr 1fr') ||
-        s.includes('1fr 1.3fr') ||
-        s.includes('1fr 1.')
-      ) &&
-      !el.id.includes('quickActions') &&
-      el.id !== 'rkGrid'
-    ){
-      el.style.display = 'block';
+  if(rkGrid){
+    if(isMobile){
+      rkGrid.style.display='flex';
+      rkGrid.style.flexDirection='column';
+      rkGrid.style.gap='12px';
+    } else {
+      rkGrid.style.display='grid';
+      rkGrid.style.gridTemplateColumns='1fr 1fr';
+      rkGrid.style.flexDirection='';
     }
-  });
-
-  // Quick action buttons — 2 x 2
-  const qa = document.getElementById('quickActions');
-  if(qa) qa.style.gridTemplateColumns = '1fr 1fr';
-
-  // Stat row — 2 kolum
-  document.querySelectorAll('.stat-row').forEach(el=>{
-    el.style.gridTemplateColumns = '1fr 1fr';
-  });
+  }
 }
-
-// Jalankan setiap kali skrin berubah
 window.addEventListener('resize', fixMobileLayout);
-// Jalankan setiap kali navigate ke skrin baru
 const _navToAsal = navTo;
 function navTo(s, el){
   _navToAsal(s, el);
