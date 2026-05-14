@@ -297,14 +297,82 @@ html,body{height:100%;font-family:var(--font);background:var(--gray0);}
   #sidebar{position:fixed;left:0;top:0;bottom:0;z-index:200;transform:translateX(-100%);transition:transform .25s;}
   #sidebar.open{transform:translateX(0);}
   .hbg{display:block;}
-  #mc{padding:12px;}
+  #mc{padding:10px;}
   .stat-row{grid-template-columns:1fr 1fr;}
   .fgrid{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  /* Semua grid 2 kolum → 1 kolum */
+  .stat-row{grid-template-columns:1fr 1fr;}
+  .fgrid{grid-template-columns:1fr;}
+  .qgrid{grid-template-columns:1fr 1fr;}
+
+  /* Rekod bacaan — kolum jadi satu kolum penuh */
+  #sc-rekod > div[style*="grid-template-columns"]{
+    display:block!important;
+  }
+  #sc-rekod > div > div{
+    margin-bottom:12px;
+  }
+
+  /* Khatam — kolum jadi satu kolum */
+  #sc-khatam > div[style*="grid-template-columns"]{
+    display:block!important;
+  }
+  #sc-khatam > div > div{
+    margin-bottom:12px;
+  }
+
+  /* Dashboard carta — satu kolum */
+  #sc-dash > div[style*="grid-template-columns:1fr 1fr"]{
+    display:block!important;
+  }
+  #sc-dash > div[style*="grid-template-columns:1fr 1fr"] > .card{
+    margin-bottom:12px;
+  }
+
+  /* Modal — skrin penuh bawah */
+  .mb2{border-radius:var(--r-lg) var(--r-lg) 0 0;align-self:flex-end;width:100%;max-height:92vh;}
+  .mo{align-items:flex-end;padding:0;}
+
+  /* Topbar lebih kecil */
+  .pt{font-size:15px;}
+  .ps{font-size:11px;}
+  .tb-btn{padding:7px 10px;font-size:11px;}
+
+  /* Murid list — text lebih kecil */
+  .mk-nama{font-size:12px;}
+  .mk-sub{font-size:10px;}
+
+  /* Form dalam rekod */
+  #sc-rekod .cb{padding:12px;}
 }
 @media(max-width:480px){
   .mb2{border-radius:var(--r-lg) var(--r-lg) 0 0;align-self:flex-end;width:100%;max-height:95vh;}
   .mo{align-items:flex-end;padding:0;}
   .stat-row{grid-template-columns:1fr 1fr;}
+  #mc{padding:8px;}
+
+  /* Semua inline grid jadi satu kolum */
+  div[style*="grid-template-columns:1fr 1fr"]{
+    display:block!important;
+  }
+  div[style*="grid-template-columns:1fr 1.3fr"]{
+    display:block!important;
+  }
+  div[style*="grid-template-columns:1fr 1fr"] > *,
+  div[style*="grid-template-columns:1fr 1.3fr"] > *{
+    margin-bottom:12px;
+  }
+
+  /* Laporan tab — scroll mendatar */
+  #sc-laporan > div:first-child{
+    gap:4px;
+  }
+  .tab-b{padding:8px 10px;font-size:12px;}
+
+  /* Export screen */
+  #sc-export .fgrid{grid-template-columns:1fr;}
 }
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-thumb{background:var(--gray3);border-radius:3px;}
@@ -518,7 +586,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
 
       <!-- REKOD -->
       <div class="screen" id="sc-rekod">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
+        <div id="rkGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">
           <div>
             <div class="card">
               <div class="ch"><h3>📋 Rekod Bacaan Baharu</h3></div>
@@ -3565,6 +3633,7 @@ async function masukApps(){
   }
 
   initApp();
+  setTimeout(fixMobileLayout, 200);
 
   // Tunjuk sambutan mengikut masa
   const jam = new Date().getHours();
@@ -3576,6 +3645,51 @@ async function masukApps(){
 /* ═══════════════════════════════════════
    BOOT — Auto-detect sesi tersimpan
 ═══════════════════════════════════════ */
+// ── Mobile Layout Fix — tukar semua grid 2 kolum jadi 1 kolum ──
+function fixMobileLayout(){
+  const isMobile = window.innerWidth <= 600;
+
+  // Grid rekod dan khatam — 1 kolum pada mobile
+  const rkGrid = document.getElementById('rkGrid');
+  if(rkGrid) rkGrid.style.gridTemplateColumns = isMobile ? '1fr' : '1fr 1fr';
+
+  if(!isMobile) return;
+
+  // Cari semua div dengan inline grid 2 kolum dan tukar jadi block
+  document.querySelectorAll('div[style]').forEach(el=>{
+    const s = el.style.cssText || el.getAttribute('style') || '';
+    if(
+      s.includes('grid-template-columns') && (
+        s.includes('1fr 1fr') ||
+        s.includes('1fr 1.3fr') ||
+        s.includes('1fr 1.')
+      ) &&
+      !el.id.includes('quickActions') &&
+      el.id !== 'rkGrid'
+    ){
+      el.style.display = 'block';
+    }
+  });
+
+  // Quick action buttons — 2 x 2
+  const qa = document.getElementById('quickActions');
+  if(qa) qa.style.gridTemplateColumns = '1fr 1fr';
+
+  // Stat row — 2 kolum
+  document.querySelectorAll('.stat-row').forEach(el=>{
+    el.style.gridTemplateColumns = '1fr 1fr';
+  });
+}
+
+// Jalankan setiap kali skrin berubah
+window.addEventListener('resize', fixMobileLayout);
+// Jalankan setiap kali navigate ke skrin baru
+const _navToAsal = navTo;
+function navTo(s, el){
+  _navToAsal(s, el);
+  setTimeout(fixMobileLayout, 100);
+}
+
 // ── Daftarkan Service Worker (PWA offline support) ──
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
