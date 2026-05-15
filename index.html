@@ -1493,49 +1493,31 @@ async function syncData(){
   document.getElementById('syncBanner').classList.add('show');
 
   try{
-    // Langkah 1: Semak data di server
-    const semak=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
-    const serverMurid=semak.ok?(semak.data.murid||[]):[];
-
-    // Langkah 2: Jika server kosong, upload murid tempatan
-    if(serverMurid.length===0 && DB.murid.length>0){
-      showT('📤 Server kosong — menghantar '+DB.murid.length+' murid...','',8000);
-      let berjaya=0,gagal=0;
-      for(const m of DB.murid){
-        try{const r=await api('addMurid',{murid:m});if(r.ok)berjaya++;else gagal++;}catch(e){gagal++;}
-      }
-      showT('✅ '+berjaya+' murid dihantar ke Google Sheets'+(gagal?' ('+gagal+' gagal)':''),'ok',5000);
-    }
-
-    // Langkah 3: Hantar guru baharu ke server
-    const serverGuru=semak.ok?(semak.data.guru||[]):[];
-    const localGuru=DB.guru.filter(g=>g.peranan==='guru');
-    let guruBaru=0;
-    for(const g of localGuru){
-      const sudahAda=serverGuru.find(sg=>sg.email===g.email||sg.email===g.username);
-      if(!sudahAda){try{const r=await api('addGuru',{guru:g});if(r.ok)guruBaru++;}catch(e){}}
-    }
-    if(guruBaru>0) showT('✅ '+guruBaru+' guru baharu dihantar','ok',3000);
-
-    // Langkah 4: Hantar rekod dalam queue
+    // Langkah 1: Hantar rekod dalam pending queue sahaja
     let rekodHantar=0;
     for(const item of [...pendingSync]){
       const res=await api(item.action,item.body);
-      if(res.ok){pendingSync=pendingSync.filter(p=>p.ts!==item.ts);rekodHantar++;}
+      if(res.ok){
+        pendingSync=pendingSync.filter(p=>p.ts!==item.ts);
+        rekodHantar++;
+      }
     }
     localStorage.setItem('skdk_pending',JSON.stringify(pendingSync));
 
-    // Langkah 5: Refresh dari server — GANTIKAN tempatan dengan server (bukan tambah)
+    // Langkah 2: Ambil data terkini dari server
     const fresh=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
-    if(fresh.ok){
-      // Guna data server sebagai sumber kebenaran
-      if(fresh.data.murid&&fresh.data.murid.length>0) DB.murid=fresh.data.murid;
-      if(fresh.data.guru&&fresh.data.guru.length>0) DB.guru=fresh.data.guru;
+    if(fresh.ok && fresh.data){
+      // Rekod & khatam — ambil dari server (sumber kebenaran)
       if(fresh.data.rekod) DB.rekod=fresh.data.rekod;
       if(fresh.data.khatam) DB.khatam=fresh.data.khatam;
-      // Sentiasa dedup selepas ambil dari server
-      const buang=dedupMurid();
-      if(buang>0) showT('🧹 '+buang+' rekod duplikat dibuang','warn',3000);
+      if(fresh.data.guru&&fresh.data.guru.length>0) DB.guru=fresh.data.guru;
+
+      // Murid — ambil dari server HANYA jika bilangan munasabah
+      if(fresh.data.murid&&fresh.data.murid.length>0&&fresh.data.murid.length<=200){
+        DB.murid=fresh.data.murid;
+      }
+      // Jika server ada lebih 200 murid — ada masalah, ignore dan guna tempatan
+      dedupMurid();
       saveLocal();
     }
 
@@ -1543,8 +1525,8 @@ async function syncData(){
     localStorage.removeItem('skdk_offline');
     document.getElementById('syncBanner').classList.remove('show');
     updateSyncStatus(true);
-    const msg=rekodHantar>0?'✅ Sync berjaya! '+rekodHantar+' rekod dihantar.':'✅ Data terkini dengan Google Sheets!';
-    showT(msg,'ok',4000);
+    const bil=DB.murid.filter(m=>m.status==='Aktif').length;
+    showT('✅ Sync berjaya! '+bil+' murid aktif'+(rekodHantar?' | '+rekodHantar+' rekod dihantar':''),'ok',4000);
     renderDash();renderMurid();renderGuru();renderAlert();renderKhatamHist();renderRekodToday();
 
   }catch(e){
@@ -3074,44 +3056,45 @@ function manualDedup(){
 async function resetDataBersih(){
   if(!confirm('⚠️ Ini akan BUANG semua data murid yang berulang dan isi semula dengan 162 murid SKDK yang betul.\n\nRekod bacaan TIDAK akan terpadam.\n\nTeruskan?')) return;
 
-  showT('⏳ Sedang membersihkan data...','',8000);
+  showT('⏳ Membersihkan data...','',10000);
 
-  // 1. Bersih tempatan
-  DB.murid = [];
-  const {added} = seedMuridSKDK();
-  saveLocal();
-  showT('✅ Tempatan: '+added+' murid diisi semula','ok',3000);
-
-  // 2. Bersih server juga
+  // Langkah 1: Bersih Google Sheets dulu (kalau ada sambungan)
   if(API_URL && !IS_OFFLINE){
-    showT('⏳ Membersihkan Google Sheets...','',8000);
     try{
-      const r = await api('resetMurid',{});
+      showT('⏳ Membersihkan Google Sheets...','',8000);
+      const r=await api('resetMurid',{});
       if(r.ok){
-        showT('✅ Google Sheets: '+r.added+' murid diisi semula','ok',5000);
+        showT('✅ Sheets: '+r.added+' murid diisi semula','ok',3000);
       } else {
-        // Fallback: dedup sahaja
-        const rd = await api('dedupMurid',{});
-        if(rd.ok) showT('🧹 Sheets: '+rd.buang+' duplikat dibuang','ok',4000);
+        // Cuba dedup sahaja
+        await api('dedupMurid',{});
       }
     }catch(e){
-      showT('⚠️ Sheets tidak dapat dikemaskini: '+e.message,'warn',4000);
+      showT('⚠️ Sheets tidak dapat dikemaskini — bersih tempatan sahaja','warn',3000);
     }
-    // Refresh dari server
-    setTimeout(async()=>{
-      const fresh = await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
-      if(fresh.ok && fresh.data.murid && fresh.data.murid.length > 0){
-        DB.murid = fresh.data.murid;
+  }
+
+  // Langkah 2: Bersih tempatan
+  DB.murid=[];
+  seedMuridSKDK();
+  saveLocal();
+
+  // Langkah 3: Ambil semula dari server
+  if(API_URL && !IS_OFFLINE){
+    await new Promise(r=>setTimeout(r,1500));
+    try{
+      const fresh=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
+      if(fresh.ok && fresh.data?.murid && fresh.data.murid.length>0 && fresh.data.murid.length<=200){
+        DB.murid=fresh.data.murid;
         dedupMurid();
         saveLocal();
       }
-      renderMurid();renderDash();renderAlert();updateStatsTetapan();
-      showT('✅ Selesai! '+DB.murid.filter(m=>m.status==="Aktif").length+' murid aktif','ok',5000);
-    }, 2000);
-  } else {
-    renderMurid();renderDash();renderAlert();updateStatsTetapan();
-    showT('✅ Selesai! '+added+' murid aktif (offline)','ok',4000);
+    }catch(e){}
   }
+
+  const bil=DB.murid.filter(m=>m.status==='Aktif').length;
+  renderMurid();renderDash();renderAlert();updateStatsTetapan();populateSels();
+  showT('✅ Selesai! '+bil+' murid aktif','ok',5000);
 }
 
 function paksa_seed(){
