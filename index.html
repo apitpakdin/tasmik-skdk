@@ -1642,8 +1642,6 @@ function navTo(s,el){
   if(s==='murid'){renderMurid();populateSels();}
   if(s==='tahun')renderTahunPage();
   if(s==='tetapan')updateStatsTetapan();
-  // Fix mobile layout selepas navigate
-  setTimeout(fixMobileLayout, 100);
 }
 
 function openSB(){document.getElementById('sidebar').classList.add('open');document.getElementById('ov').classList.add('show');}
@@ -3653,7 +3651,8 @@ async function masukApps(){
   }
 
   initApp();
-  setTimeout(fixMobileLayout, 200);
+  // Adjust layout untuk mobile
+  setTimeout(fixMobileLayout,300);
 
   // Tunjuk sambutan mengikut masa
   const jam = new Date().getHours();
@@ -3665,23 +3664,15 @@ async function masukApps(){
 /* ═══════════════════════════════════════
    BOOT — Auto-detect sesi tersimpan
 ═══════════════════════════════════════ */
-// ── Mobile Layout Fix ──
+// ── Mobile Layout Fix (CSS sahaja - tiada JS override navTo) ──
 function fixMobileLayout(){
-  const isMobile = window.innerWidth <= 640;
-  const rkGrid = document.getElementById('rkGrid');
-  if(rkGrid){
-    if(isMobile){
-      rkGrid.style.display='flex';
-      rkGrid.style.flexDirection='column';
-      rkGrid.style.gap='12px';
-    } else {
-      rkGrid.style.display='grid';
-      rkGrid.style.gridTemplateColumns='1fr 1fr';
-      rkGrid.style.flexDirection='';
-    }
-  }
+  try{
+    const isMobile=window.innerWidth<=640;
+    const rk=document.getElementById('rkGrid');
+    if(rk){rk.style.cssText=isMobile?'display:flex;flex-direction:column;gap:12px':'display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start';}
+  }catch(e){}
 }
-window.addEventListener('resize', fixMobileLayout);
+window.addEventListener('resize',fixMobileLayout);
 
 // ── Daftarkan Service Worker (PWA offline support) ──
 if ('serviceWorker' in navigator) {
