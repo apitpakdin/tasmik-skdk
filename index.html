@@ -1371,67 +1371,67 @@ function get5HariSekolah(){
 }
 
 function buildLocalDashboard(){
-  // Tapis mengikut kelas guru (jika bukan admin)
   const isAdmin=CU?.peranan==='admin';
   const guruKelas=CU?.darjah&&CU?.kelas?{darjah:CU.darjah,kelas:CU.kelas}:null;
 
   let aktif=DB.murid.filter(m=>m.status==='Aktif');
-  let rekodAll=DB.rekod;
+  let rekodAll=[...DB.rekod];
 
-  // Guru hanya nampak kelas mereka
+  // Tapis mengikut kelas guru
   if(!isAdmin&&guruKelas){
     aktif=aktif.filter(m=>m.darjah===guruKelas.darjah&&m.kelas===guruKelas.kelas);
     rekodAll=rekodAll.filter(r=>r.darjah===guruKelas.darjah&&r.kelas===guruKelas.kelas);
-  } else if(!isAdmin&&CU?.id){
-    // Guru tanpa kelas tetap — tapis rekod guru sendiri
-    rekodAll=rekodAll.filter(r=>r.guruId===CU.id);
   }
 
   const today=new Date().toDateString();
   const sesiHari=rekodAll.filter(r=>new Date(r.tarikh).toDateString()===today).length;
 
-  // Amaran — kira hari persekolahan sahaja (bukan hari kalendar)
-  const alertCutoff=new Date();alertCutoff.setDate(alertCutoff.getDate()-10); // ~2 minggu persekolahan
+  // Stats berdasarkan peringkat murid semasa
+  const sedangIqra=aktif.filter(m=>m.peringkat&&m.peringkat!=='Al-Quran'&&m.peringkat!=='Khatam').length;
+  const sedangQuran=aktif.filter(m=>m.peringkat==='Al-Quran').length;
+  const jumlahKhatam=aktif.reduce((a,m)=>a+(parseInt(m.bilKhatam)||0),0);
+
+  // Amaran — murid tiada rekod > 10 hari
+  const alertCutoff=new Date();
+  alertCutoff.setDate(alertCutoff.getDate()-10);
   const alerts=aktif.filter(m=>{
-    const rs=rekodAll.filter(r=>r.muridId===m.id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
-    return!rs.length||new Date(rs[0].tarikh)<alertCutoff;
+    const rs=rekodAll.filter(r=>r.muridId===m.id);
+    if(!rs.length) return true;
+    const lr=rs.sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh))[0];
+    return new Date(lr.tarikh)<alertCutoff;
   }).map(m=>{
     const rs=rekodAll.filter(r=>r.muridId===m.id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
-    const hariTiada=rs.length?Math.floor((Date.now()-new Date(rs[0].tarikh))/(864e5)):999;
-    return{...m,hariTiada};
+    return{...m,hariTiada:rs.length?Math.floor((Date.now()-new Date(rs[0].tarikh))/(864e5)):999};
   });
 
-  // ── Carta Mingguan — 5 hari persekolahan sahaja ──
-  const hariSekolah5=get5HariSekolah();
+  // ── Carta Mingguan — 5 hari persekolahan SAHAJA (Isnin-Jumaat) ──
   const DAYS=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
-  const mingguan=hariSekolah5.map(d=>{
+  const hariSekolah=[];
+  for(let i=0;i<21&&hariSekolah.length<5;i++){
+    const d=new Date();
+    d.setDate(d.getDate()-i);
+    const day=d.getDay();
+    if(day>=1&&day<=5) hariSekolah.unshift(d); // Isnin(1) hingga Jumaat(5)
+  }
+  const mingguan=hariSekolah.map(d=>{
     const ds=d.toDateString();
     const rs=rekodAll.filter(r=>new Date(r.tarikh).toDateString()===ds);
-    return{
-      hari:DAYS[d.getDay()]+' '+d.getDate(),
-      tarikh:fmtD(d.toISOString()),
-      sesi:rs.length,
-      muka:rs.reduce((a,r)=>a+(r.jumlah||0),0),
-      muridUnik:new Set(rs.map(r=>r.muridId)).size
-    };
+    return{hari:DAYS[d.getDay()]+' '+d.getDate(),tarikh:fmtD(d.toISOString()),sesi:rs.length,muka:rs.reduce((a,r)=>a+(r.jumlah||0),0),muridUnik:new Set(rs.map(r=>r.muridId)).size};
   });
 
   // ── Carta Bulanan ──
   const yr=new Date().getFullYear();
-  const bulanan=BL.map((b,m)=>{
-    const rs=rekodAll.filter(r=>{const d=new Date(r.tarikh);return d.getFullYear()===yr&&d.getMonth()===m;});
+  const bulanan=BL.map((b,mi)=>{
+    const rs=rekodAll.filter(r=>{const d=new Date(r.tarikh);return d.getFullYear()===yr&&d.getMonth()===mi;});
     return{bulan:b,sesi:rs.length,muka:rs.reduce((a,r)=>a+(r.jumlah||0),0)};
   });
 
-  // Info kelas untuk guru
   const kelasInfo=guruKelas?` — ${guruKelas.darjah} ${guruKelas.kelas}`:'';
 
   return{ok:true,dashboard:{
     jumlahMurid:aktif.length,sesiHari,
     jumlahAlert:alerts.length,
-    jumlahKhatam:aktif.reduce((a,m)=>a+(m.bilKhatam||0),0),
-    sedangIqra:aktif.filter(m=>m.peringkat!=='Al-Quran'&&m.peringkat!=='Khatam').length,
-    sedangQuran:aktif.filter(m=>m.peringkat==='Al-Quran').length,
+    jumlahKhatam,sedangIqra,sedangQuran,
     mingguan,bulanan,
     alerts:alerts.slice(0,10),
     rekodTerkini:[...rekodAll].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh)).slice(0,10),
@@ -3056,44 +3056,44 @@ function manualDedup(){
 async function resetDataBersih(){
   if(!confirm('⚠️ Ini akan BUANG semua data murid yang berulang dan isi semula dengan 162 murid SKDK yang betul.\n\nRekod bacaan TIDAK akan terpadam.\n\nTeruskan?')) return;
 
-  showT('⏳ Membersihkan data...','',10000);
+  showT('⏳ Membersihkan data...','',15000);
 
-  // Langkah 1: Bersih Google Sheets dulu (kalau ada sambungan)
+  // Langkah 1: Kosongkan sheet Google Sheets
   if(API_URL && !IS_OFFLINE){
     try{
-      showT('⏳ Membersihkan Google Sheets...','',8000);
-      const r=await api('resetMurid',{});
-      if(r.ok){
-        showT('✅ Sheets: '+r.added+' murid diisi semula','ok',3000);
-      } else {
-        // Cuba dedup sahaja
-        await api('dedupMurid',{});
-      }
-    }catch(e){
-      showT('⚠️ Sheets tidak dapat dikemaskini — bersih tempatan sahaja','warn',3000);
-    }
-  }
-
-  // Langkah 2: Bersih tempatan
-  DB.murid=[];
-  seedMuridSKDK();
-  saveLocal();
-
-  // Langkah 3: Ambil semula dari server
-  if(API_URL && !IS_OFFLINE){
-    await new Promise(r=>setTimeout(r,1500));
-    try{
-      const fresh=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
-      if(fresh.ok && fresh.data?.murid && fresh.data.murid.length>0 && fresh.data.murid.length<=200){
-        DB.murid=fresh.data.murid;
-        dedupMurid();
-        saveLocal();
-      }
+      const r = await api('resetMurid',{});
+      if(r.ok) showT('✅ Google Sheets dikosongkan','ok',2000);
     }catch(e){}
   }
 
-  const bil=DB.murid.filter(m=>m.status==='Aktif').length;
+  // Langkah 2: Seed 162 murid betul ke DB tempatan
+  DB.murid = [];
+  const {added} = seedMuridSKDK();
+  saveLocal();
+  showT('✅ '+added+' murid SKDK dimuatkan','ok',2000);
+
+  // Langkah 3: Upload 162 murid ke Google Sheets (satu persatu)
+  if(API_URL && !IS_OFFLINE){
+    showT('⏳ Menghantar '+added+' murid ke Google Sheets...','',15000);
+    let ok=0, gagal=0;
+    for(const m of DB.murid){
+      try{
+        const r = await api('addMurid',{murid:m});
+        // Guna ID dari server supaya rekod lama masih sesuai
+        if(r.ok && r.id && !r.existing){
+          const idx = DB.murid.findIndex(x=>x.id===m.id);
+          if(idx>=0) DB.murid[idx].id = r.id;
+          ok++;
+        } else if(r.existing){ ok++; } // dah ada, OK
+        else gagal++;
+      }catch(e){gagal++;}
+    }
+    saveLocal();
+    showT('✅ Sheets: '+ok+' murid berjaya'+(gagal?' | '+gagal+' gagal':''),'ok',4000);
+  }
+
   renderMurid();renderDash();renderAlert();updateStatsTetapan();populateSels();
+  const bil=DB.murid.filter(m=>m.status==='Aktif').length;
   showT('✅ Selesai! '+bil+' murid aktif','ok',5000);
 }
 
