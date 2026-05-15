@@ -3024,26 +3024,46 @@ function manualDedup(){
 }
 
 async function resetDataBersih(){
-  if(!confirm('⚠️ Ini akan BUANG semua data murid dan isi semula dengan 162 murid SKDK yang betul.\n\nRekod bacaan TIDAK akan terpadam.\n\nTeruskan?')) return;
+  if(!confirm('⚠️ Ini akan BUANG semua data murid yang berulang dan isi semula dengan 162 murid SKDK yang betul.\n\nRekod bacaan TIDAK akan terpadam.\n\nTeruskan?')) return;
 
-  // 1. Buang semua murid tempatan
+  showT('⏳ Sedang membersihkan data...','',8000);
+
+  // 1. Bersih tempatan
   DB.murid = [];
-  // 2. Seed semula 162 murid yang betul
   const {added} = seedMuridSKDK();
   saveLocal();
-  showT('✅ Data dibersihkan: '+added+' murid dimuatkan semula','ok',4000);
+  showT('✅ Tempatan: '+added+' murid diisi semula','ok',3000);
 
-  // 3. Hantar ke server jika ada sambungan
+  // 2. Bersih server juga
   if(API_URL && !IS_OFFLINE){
-    showT('⏳ Menghantar ke Google Sheets...','',5000);
-    let ok=0;
-    for(const m of DB.murid){
-      try{ const r=await api('addMurid',{murid:m}); if(r.ok) ok++; }catch(e){}
+    showT('⏳ Membersihkan Google Sheets...','',8000);
+    try{
+      const r = await api('resetMurid',{});
+      if(r.ok){
+        showT('✅ Google Sheets: '+r.added+' murid diisi semula','ok',5000);
+      } else {
+        // Fallback: dedup sahaja
+        const rd = await api('dedupMurid',{});
+        if(rd.ok) showT('🧹 Sheets: '+rd.buang+' duplikat dibuang','ok',4000);
+      }
+    }catch(e){
+      showT('⚠️ Sheets tidak dapat dikemaskini: '+e.message,'warn',4000);
     }
-    showT('✅ '+ok+' murid dihantar ke Sheets. Sila semak data.','ok',6000);
+    // Refresh dari server
+    setTimeout(async()=>{
+      const fresh = await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
+      if(fresh.ok && fresh.data.murid && fresh.data.murid.length > 0){
+        DB.murid = fresh.data.murid;
+        dedupMurid();
+        saveLocal();
+      }
+      renderMurid();renderDash();renderAlert();updateStatsTetapan();
+      showT('✅ Selesai! '+DB.murid.filter(m=>m.status==="Aktif").length+' murid aktif','ok',5000);
+    }, 2000);
+  } else {
+    renderMurid();renderDash();renderAlert();updateStatsTetapan();
+    showT('✅ Selesai! '+added+' murid aktif (offline)','ok',4000);
   }
-
-  renderMurid();renderDash();renderAlert();updateStatsTetapan();
 }
 
 function paksa_seed(){
