@@ -952,8 +952,13 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
         <!-- BAHAGIAN PENGURUSAN DATA — semua pengguna boleh akses -->
         <div class="card"><div class="ch"><h3>🗄️ Pengurusan Data</h3></div>
           <div class="cb">
-            <div style="background:var(--g7);border-radius:var(--r-md);padding:10px 12px;font-size:12px;color:var(--g1);margin-bottom:14px;line-height:1.5">
-              📊 <b>Data semasa:</b>
+            <div style="background:#fee2e2;border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px;font-size:13px;color:#991b1b;line-height:1.6;display:flex;align-items:center;gap:10px" id="emergencyBox">
+              <span style="font-size:24px">🚨</span>
+              <div>
+                <b>Murid kosong?</b> Tekan butang ini untuk isi semula 162 murid SKDK.
+                <br><button class="btn btn-d" style="margin-top:8px;width:100%;font-size:14px;padding:12px" onclick="isiMurid()">🚨 ISI SEMULA MURID SEKARANG</button>
+              </div>
+            </div>
               <span id="statMurid">— murid</span> •
               <span id="statRekod">— rekod</span> •
               <span id="statGuru">— guru</span>
