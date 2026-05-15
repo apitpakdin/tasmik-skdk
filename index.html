@@ -3707,37 +3707,40 @@ async function masukApps(){
   // Muat data dari server
   const dr = await api('getAll',{userId:CU.id, peranan:CU.peranan});
   if(dr.ok && dr.data){
-    // Guru: guna data server sebagai sumber
     if(dr.data.rekod) DB.rekod = dr.data.rekod;
     if(dr.data.khatam) DB.khatam = dr.data.khatam;
     if(dr.data.guru && dr.data.guru.length>0) DB.guru = dr.data.guru;
-
-    // Untuk murid — HANYA guna server jika bilangan munasabah (kurang 200)
     if(dr.data.murid && dr.data.murid.length>0 && dr.data.murid.length<=200){
       DB.murid = dr.data.murid;
     } else if(dr.data.murid && dr.data.murid.length>200){
-      // Server ada duplikat — bersih dulu, ambil 162 sahaja
       DB.murid = dr.data.murid;
-      dedupMurid(); // buang duplikat terus
+      dedupMurid();
     }
     saveLocal();
   }
   alertDays = parseInt((dr.ok&&dr.data?.config?.alertDays)||7);
 
-  // Sentiasa dedup selepas fetch
+  // Buang duplikat
   dedupMurid();
 
-  // Seed HANYA jika betul-betul tiada murid
+  // SENTIASA seed jika tiada murid — tidak kira server OK atau tidak
   const bilAktif = DB.murid.filter(m=>m.status==='Aktif').length;
   if(bilAktif === 0){
     const {added} = seedMuridSKDK();
-    if(added > 0){
-      showT('📚 '+added+' murid SK Datin Khadijah dimuatkan!','ok',4000);
-      if(API_URL && !IS_OFFLINE) setTimeout(()=>syncData(), 3000);
+    showT('📚 '+added+' murid SK Datin Khadijah dimuatkan!','ok',4000);
+    // Upload ke server selepas seed — dengan delay supaya UI sempat render
+    if(API_URL && !IS_OFFLINE){
+      setTimeout(async()=>{
+        let ok=0;
+        for(const m of DB.murid){
+          try{const r=await api('addMurid',{murid:m});if(r.ok)ok++;}catch(e){}
+        }
+        if(ok>0) showT('✅ '+ok+' murid dihantar ke Google Sheets','ok',3000);
+      }, 2000);
     }
   }
 
-  // Seed guru dari GURU_SKDK
+  // Seed guru
   seedGuruSKDK();
 
   initApp();
@@ -3754,6 +3757,22 @@ async function masukApps(){
 /* ═══════════════════════════════════════
    BOOT — Auto-detect sesi tersimpan
 ═══════════════════════════════════════ */
+// ── FUNGSI KECEMASAN — taip isiMurid() dalam Console jika murid kosong ──
+async function isiMurid(){
+  DB.murid=[];
+  const {added}=seedMuridSKDK();
+  saveLocal();
+  renderMurid();renderDash();populateSels();
+  showT('✅ '+added+' murid diisi semula!','ok',4000);
+  if(API_URL&&!IS_OFFLINE){
+    let ok=0;
+    for(const m of DB.murid){
+      try{const r=await api('addMurid',{murid:m});if(r.ok)ok++;}catch(e){}
+    }
+    showT('✅ '+ok+' murid dihantar ke Google Sheets','ok',5000);
+  }
+}
+
 // ── Mobile Layout Fix (CSS sahaja - tiada JS override navTo) ──
 function fixMobileLayout(){
   try{
