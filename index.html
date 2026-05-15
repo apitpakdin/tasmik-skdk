@@ -1986,71 +1986,119 @@ let lastMuridId = localStorage.getItem('skdk_last_murid')||'';
 
 async function rkSimpan(){
   const muridId=rkMuridId||document.getElementById('rkM')?.value||'';
-  if(!muridId){showT('Sila pilih murid','err');return;}
+  if(!muridId){showT('Sila pilih murid terlebih dahulu','err');return;}
   const dari=parseInt(document.getElementById('rkDr').value);
   const ke=parseInt(document.getElementById('rkKe').value);
-  if(!dari||!ke||ke<dari){showT('Muka surat tidak sah','err');return;}
-  const m=DB.murid.find(x=>x.id===muridId);if(!m)return;
+  if(!dari||!ke||ke<dari){showT('Muka surat tidak sah — semak nombor Dari dan Ke','err');return;}
+  const m=DB.murid.find(x=>x.id===muridId);
+  if(!m){showT('Murid tidak dijumpai — cuba pilih semula','err');return;}
+
   const peringkat=document.getElementById('rkP').value;
   const iqraLabel=document.getElementById('rkIL').value;
   const now=new Date();
   let label=iqraLabel;
-  if(peringkat==='Al-Quran'||rkJenisVal==='Al-Quran'){const jD=getJuz(dari),jK=getJuz(ke);label=jD===jK?'Al-Quran (Juzuk '+jD+')':'Al-Quran (Juzuk '+jD+'-'+jK+')';}
+  if(peringkat==='Al-Quran'||rkJenisVal==='Al-Quran'){
+    const jD=getJuz(dari),jK=getJuz(ke);
+    label=jD===jK?'Al-Quran (Juzuk '+jD+')':'Al-Quran (Juzuk '+jD+'-'+jK+')';
+  }
+
+  const guruNama=document.getElementById('rkGr').value||(CU?.nama||'');
   const rekod={
-    muridId,muridNama:m.nama,darjah:m.darjah,kelas:m.kelas,
-    guruId:CU?.id||'',guru:document.getElementById('rkGr').value||(CU?.nama||''),
-    jenis:rkJenisVal,peringkat,iqraLabel:label,
-    dari,ke,jumlah:ke-dari+1,kualiti:rkQVal,
-    catatan:document.getElementById('rkCt').value,
+    muridId, muridNama:m.nama, darjah:m.darjah, kelas:m.kelas,
+    guruId:CU?.id||'', guru:guruNama,
+    jenis:rkJenisVal, peringkat, iqraLabel:label,
+    dari, ke, jumlah:ke-dari+1, kualiti:rkQVal,
+    catatan:document.getElementById('rkCt').value||'',
     kemaskini:document.getElementById('rkC1').classList.contains('on'),
     naikPeringkat:document.getElementById('rkC2').classList.contains('on'),
-    tarikh:now.toISOString()
+    tarikh:now.toISOString(),
+    hari:['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'][now.getDay()],
+    masa:now.toTimeString().slice(0,5)
   };
-  const r=await api('addRekod',{rekod});
-  if(!r.ok){showT(r.msg||'Gagal simpan','err');return;}
 
-  // Simpan murid terakhir supaya senang isi rekod seterusnya
-  lastMuridId=muridId;
-  localStorage.setItem('skdk_last_murid',muridId);
+  // ── SIMPAN TEMPATAN DAHULU (tidak kira server berjaya atau tidak) ──
+  const localId='R'+Date.now();
+  DB.rekod.push({id:localId,...rekod});
 
-  // Kemaskini DB tempatan
-  DB.rekod.push({id:r.id||genId('R'),...rekod});
+  // Kemaskini kedudukan murid dalam DB tempatan
   const idx=DB.murid.findIndex(x=>x.id===muridId);
   if(rekod.naikPeringkat&&idx>=0){
-    const ci=PO.indexOf(peringkat);const next=ci>=0&&ci<PO.length-1?PO[ci+1]:peringkat;
+    const ci=PO.indexOf(peringkat);
+    const next=ci>=0&&ci<PO.length-1?PO[ci+1]:peringkat;
     let nm=1,nl=next;
     if(next==='Al-Quran'){nl='Al-Quran (Juzuk 1)';DB.murid[idx].jenis='Al-Quran';}
     else if(next!=='Khatam'){const ref=getRef(rkJenisVal,next);if(ref){nm=ref.dari;nl=next+' ('+(ref.j||rkJenisVal)+')';}}
     DB.murid[idx].peringkat=next;DB.murid[idx].iqraLabel=nl;DB.murid[idx].mukaSurat=nm;
   }else if(rekod.kemaskini&&idx>=0){
-    DB.murid[idx].peringkat=peringkat;DB.murid[idx].iqraLabel=label;DB.murid[idx].mukaSurat=ke;DB.murid[idx].jenis=rkJenisVal;
+    DB.murid[idx].peringkat=peringkat;DB.murid[idx].iqraLabel=label;
+    DB.murid[idx].mukaSurat=ke;DB.murid[idx].jenis=rkJenisVal;
   }
   if(idx>=0) DB.murid[idx].tarihKemaskini=now.toISOString();
   saveLocal();
 
-  // Reset muka surat sahaja — kekal murid yang sama
+  // Tunjuk rekod terus — jangan tunggu server
+  renderRekodToday();
+  if(rekod.kemaskini||rekod.naikPeringkat) rkOnMurid();
+  showT('✅ Rekod disimpan!'+(rekod.naikPeringkat?' 🎉 Naik peringkat!':''),'ok',2500);
+
+  // Reset form (kekal murid yang sama)
   document.getElementById('rkDr').value='';
   document.getElementById('rkKe').value='';
   document.getElementById('rkJH').textContent='';
-  document.getElementById('rkJB').style.display='none';
-  document.getElementById('rkWB').style.display='none';
+  const jb=document.getElementById('rkJB');if(jb)jb.style.display='none';
+  const wb=document.getElementById('rkWB');if(wb)wb.style.display='none';
 
-  // Refresh info murid (tunjuk muka surat terkini)
-  if(rekod.kemaskini||rekod.naikPeringkat) rkOnMurid();
+  // Simpan murid terakhir
+  lastMuridId=muridId;
+  localStorage.setItem('skdk_last_murid',muridId);
 
-  showT('✅ Rekod disimpan!'+(rekod.naikPeringkat?' 🎉 Naik peringkat!':''),'ok',2500);
-  renderRekodToday();renderDash();updateAlertBadge();
+  // ── HANTAR KE SERVER (background — tidak blok UI) ──
+  try{
+    const r=await api('addRekod',{rekod});
+    if(r.ok){
+      // Kemaskini ID dari server
+      const ri=DB.rekod.findIndex(x=>x.id===localId);
+      if(ri>=0) DB.rekod[ri].id=r.id||localId;
+      saveLocal();
+    } else {
+      // Server gagal — queue untuk sync nanti
+      queueSync('addRekod',{rekod});
+      showT('⚠️ Rekod disimpan offline. Akan sync bila ada internet.','warn',4000);
+    }
+  }catch(e){
+    queueSync('addRekod',{rekod});
+    showT('⚠️ Rekod disimpan offline. Akan sync bila ada internet.','warn',4000);
+  }
+
+  renderDash();updateAlertBadge();
 }
 
 function renderRekodToday(){
   const today=new Date().toDateString();
-  const rs=[...DB.rekod].filter(r=>new Date(r.tarikh).toDateString()===today)
-    .filter(r=>CU?.peranan==='admin'||r.guruId===CU?.id)
-    .sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+  let rs=[...DB.rekod].filter(r=>new Date(r.tarikh).toDateString()===today);
+
+  // Tapis mengikut kelas guru (bukan guruId — sebab ID mungkin berbeza)
+  if(CU?.peranan!=='admin'){
+    if(CU?.darjah&&CU?.kelas){
+      rs=rs.filter(r=>r.darjah===CU.darjah&&r.kelas===CU.kelas);
+    }
+  }
+  rs.sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+
   document.getElementById('todayCnt').textContent=rs.length;
   const el=document.getElementById('todayList');
-  if(!rs.length){el.innerHTML='<div class="es" style="padding:20px"><p>Tiada rekod hari ini</p></div>';return;}
-  el.innerHTML=`<table class="dt"><tbody>${rs.map(r=>`<tr><td class="nc">${esc(r.muridNama)}</td><td style="font-size:12px">${r.peringkat}</td><td style="font-size:12px">${r.dari}-${r.ke}</td><td><span class="bdg ${kColor(r.kualiti)}" style="font-size:10px">${(r.kualiti||'').split(' ')[0]}</span></td><td style="font-size:11px">${fmtT(r.tarikh)}</td></tr>`).join('')}</tbody></table>`;
+  if(!rs.length){
+    el.innerHTML='<div class="es" style="padding:20px"><p>Tiada rekod hari ini</p></div>';
+    return;
+  }
+  el.innerHTML=`<table class="dt"><tbody>${rs.map(r=>`
+    <tr>
+      <td class="nc" style="font-size:12px">${esc(r.muridNama)}</td>
+      <td style="font-size:11px">${r.peringkat}</td>
+      <td style="font-size:11px">${r.dari}–${r.ke}</td>
+      <td><span class="bdg ${kColor(r.kualiti)}" style="font-size:10px">${(r.kualiti||'').split(' ')[0]}</span></td>
+      <td style="font-size:11px">${fmtT(r.tarikh)}</td>
+    </tr>`).join('')}</tbody></table>`;
 }
 
 /* ═══════════════════════════════════════
@@ -3675,34 +3723,38 @@ async function masukApps(){
 
   // Muat data dari server
   const dr = await api('getAll',{userId:CU.id, peranan:CU.peranan});
-  if(dr.ok){
-    // Guna data server jika ada, jika tidak kekalkan tempatan
-    if(dr.data.murid&&dr.data.murid.length>0) DB.murid = dr.data.murid;
-    if(dr.data.guru&&dr.data.guru.length>0) DB.guru = dr.data.guru;
+  if(dr.ok && dr.data){
+    // Guru: guna data server sebagai sumber
     if(dr.data.rekod) DB.rekod = dr.data.rekod;
     if(dr.data.khatam) DB.khatam = dr.data.khatam;
-  }
-  alertDays = parseInt((dr.ok&&dr.data.config?.alertDays)||7);
+    if(dr.data.guru && dr.data.guru.length>0) DB.guru = dr.data.guru;
 
-  // Buang duplikat dahulu sebelum semak bilangan
+    // Untuk murid — HANYA guna server jika bilangan munasabah (kurang 200)
+    if(dr.data.murid && dr.data.murid.length>0 && dr.data.murid.length<=200){
+      DB.murid = dr.data.murid;
+    } else if(dr.data.murid && dr.data.murid.length>200){
+      // Server ada duplikat — bersih dulu, ambil 162 sahaja
+      DB.murid = dr.data.murid;
+      dedupMurid(); // buang duplikat terus
+    }
+    saveLocal();
+  }
+  alertDays = parseInt((dr.ok&&dr.data?.config?.alertDays)||7);
+
+  // Sentiasa dedup selepas fetch
   dedupMurid();
 
-  // Seed HANYA jika betul-betul tiada murid (server kosong DAN tempatan kosong)
+  // Seed HANYA jika betul-betul tiada murid
   const bilAktif = DB.murid.filter(m=>m.status==='Aktif').length;
   if(bilAktif === 0){
     const {added} = seedMuridSKDK();
     if(added > 0){
       showT('📚 '+added+' murid SK Datin Khadijah dimuatkan!','ok',4000);
-      // Sync ke server sekali sahaja
-      if(API_URL && !IS_OFFLINE) setTimeout(()=>syncData(), 2000);
+      if(API_URL && !IS_OFFLINE) setTimeout(()=>syncData(), 3000);
     }
-  } else if(bilAktif > 200){
-    // Ada lebih 200 murid — kemungkinan besar ada duplikat, buang
-    const buang = dedupMurid();
-    if(buang > 0) showT('🧹 '+buang+' rekod duplikat dibuang secara automatik','warn',4000);
   }
 
-  // Seed guru dari GURU_SKDK (selamat dipanggil berulang)
+  // Seed guru dari GURU_SKDK
   seedGuruSKDK();
 
   initApp();
