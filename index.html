@@ -965,6 +965,10 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
                 <span>🧹 Buang Duplikat</span>
                 <span style="font-size:10px;opacity:.7">Padam nama murid berulang</span>
               </button>
+              <button class="btn btn-d btn-sm" onclick="resetDataBersih()" style="flex-direction:column;gap:4px;height:60px;justify-content:center">
+                <span>🔁 Reset & Bersih</span>
+                <span style="font-size:10px;opacity:.7">Isi semula 162 murid sahaja</span>
+              </button>
               <button class="btn btn-s" onclick="syncData()" style="flex-direction:column;gap:4px;height:60px;justify-content:center">
                 <span>☁️ Sync Google Sheets</span>
                 <span style="font-size:10px;opacity:.7">Hantar semua data ke server</span>
@@ -3010,8 +3014,31 @@ function manualDedup(){
   if(buang>0){
     showT('🧹 '+buang+' duplikat dibuang! ('+sebelum+' → '+selepas+' murid)','ok',5000);
   } else {
-    showT('✅ Tiada duplikat dijumpai. ('+sebelum+' murid)','ok',3000);
+    showT('✅ Tiada duplikat. ('+sebelum+' murid)','ok',3000);
   }
+}
+
+async function resetDataBersih(){
+  if(!confirm('⚠️ Ini akan BUANG semua data murid dan isi semula dengan 162 murid SKDK yang betul.\n\nRekod bacaan TIDAK akan terpadam.\n\nTeruskan?')) return;
+
+  // 1. Buang semua murid tempatan
+  DB.murid = [];
+  // 2. Seed semula 162 murid yang betul
+  const {added} = seedMuridSKDK();
+  saveLocal();
+  showT('✅ Data dibersihkan: '+added+' murid dimuatkan semula','ok',4000);
+
+  // 3. Hantar ke server jika ada sambungan
+  if(API_URL && !IS_OFFLINE){
+    showT('⏳ Menghantar ke Google Sheets...','',5000);
+    let ok=0;
+    for(const m of DB.murid){
+      try{ const r=await api('addMurid',{murid:m}); if(r.ok) ok++; }catch(e){}
+    }
+    showT('✅ '+ok+' murid dihantar ke Sheets. Sila semak data.','ok',6000);
+  }
+
+  renderMurid();renderDash();renderAlert();updateStatsTetapan();
 }
 
 function paksa_seed(){
@@ -3621,34 +3648,37 @@ async function masukApps(){
     }
   }
 
-  // Muat data dari server/offline
+  // Muat data dari server
   const dr = await api('getAll',{userId:CU.id, peranan:CU.peranan});
   if(dr.ok){
-    DB.guru = dr.data.guru||[];
-    DB.murid = dr.data.murid||[];
-    DB.rekod = dr.data.rekod||[];
-    DB.khatam = dr.data.khatam||[];
-    saveLocal();
+    // Guna data server jika ada, jika tidak kekalkan tempatan
+    if(dr.data.murid&&dr.data.murid.length>0) DB.murid = dr.data.murid;
+    if(dr.data.guru&&dr.data.guru.length>0) DB.guru = dr.data.guru;
+    if(dr.data.rekod) DB.rekod = dr.data.rekod;
+    if(dr.data.khatam) DB.khatam = dr.data.khatam;
   }
   alertDays = parseInt((dr.ok&&dr.data.config?.alertDays)||7);
 
-  // ── SEED murid & guru SKDK jika DB kosong — untuk SEMUA pengguna ──
-  let seeded = false;
-  if(DB.murid.filter(m=>m.status==='Aktif').length === 0){
+  // Buang duplikat dahulu sebelum semak bilangan
+  dedupMurid();
+
+  // Seed HANYA jika betul-betul tiada murid (server kosong DAN tempatan kosong)
+  const bilAktif = DB.murid.filter(m=>m.status==='Aktif').length;
+  if(bilAktif === 0){
     const {added} = seedMuridSKDK();
     if(added > 0){
-      seeded = true;
       showT('📚 '+added+' murid SK Datin Khadijah dimuatkan!','ok',4000);
+      // Sync ke server sekali sahaja
+      if(API_URL && !IS_OFFLINE) setTimeout(()=>syncData(), 2000);
     }
+  } else if(bilAktif > 200){
+    // Ada lebih 200 murid — kemungkinan besar ada duplikat, buang
+    const buang = dedupMurid();
+    if(buang > 0) showT('🧹 '+buang+' rekod duplikat dibuang secara automatik','warn',4000);
   }
 
-  // Sentiasa seed guru (selamat dipanggil berulang kali)
+  // Seed guru dari GURU_SKDK (selamat dipanggil berulang)
   seedGuruSKDK();
-
-  // Sync ke Google Sheets jika baru seed
-  if(seeded && API_URL && !IS_OFFLINE){
-    setTimeout(()=> syncData(), 2000);
-  }
 
   initApp();
   // Adjust layout untuk mobile
