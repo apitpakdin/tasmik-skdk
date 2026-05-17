@@ -1383,44 +1383,49 @@ function buildLocalDashboard(){
   const isAdmin=CU?.peranan==='admin';
   const guruKelas=CU?.darjah&&CU?.kelas?{darjah:CU.darjah,kelas:CU.kelas}:null;
 
+  // Dedup dulu sebelum kira
+  dedupMurid();
+
   let aktif=DB.murid.filter(m=>m.status==='Aktif');
   let rekodAll=[...DB.rekod];
+  let khatamAll=[...DB.khatam];
 
   // Tapis mengikut kelas guru
   if(!isAdmin&&guruKelas){
     aktif=aktif.filter(m=>m.darjah===guruKelas.darjah&&m.kelas===guruKelas.kelas);
     rekodAll=rekodAll.filter(r=>r.darjah===guruKelas.darjah&&r.kelas===guruKelas.kelas);
+    khatamAll=khatamAll.filter(k=>k.darjah===guruKelas.darjah&&k.kelas===guruKelas.kelas);
   }
 
   const today=new Date().toDateString();
   const sesiHari=rekodAll.filter(r=>new Date(r.tarikh).toDateString()===today).length;
 
-  // Stats berdasarkan peringkat murid semasa
-  const sedangIqra=aktif.filter(m=>m.peringkat&&m.peringkat!=='Al-Quran'&&m.peringkat!=='Khatam').length;
-  const sedangQuran=aktif.filter(m=>m.peringkat==='Al-Quran').length;
-  const jumlahKhatam=aktif.reduce((a,m)=>a+(parseInt(m.bilKhatam)||0),0);
+  // ── Kira dari DB.khatam (bukan DB.murid.bilKhatam yang mungkin kosong) ──
+  const jumlahKhatam=khatamAll.length; // setiap rekod khatam = 1 khatam
+  const muridKhatamIds=new Set(khatamAll.map(k=>k.muridId));
+  const sedangIqra=aktif.filter(m=>!muridKhatamIds.has(m.id)&&m.peringkat!=='Al-Quran').length;
+  const sedangQuran=aktif.filter(m=>!muridKhatamIds.has(m.id)&&m.peringkat==='Al-Quran').length;
 
-  // Amaran — murid tiada rekod > 10 hari
+  // Amaran — murid tiada rekod > 10 hari (guna hari kalendar biasa)
   const alertCutoff=new Date();
   alertCutoff.setDate(alertCutoff.getDate()-10);
   const alerts=aktif.filter(m=>{
     const rs=rekodAll.filter(r=>r.muridId===m.id);
     if(!rs.length) return true;
-    const lr=rs.sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh))[0];
+    const lr=[...rs].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh))[0];
     return new Date(lr.tarikh)<alertCutoff;
   }).map(m=>{
-    const rs=rekodAll.filter(r=>r.muridId===m.id).sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+    const rs=[...rekodAll.filter(r=>r.muridId===m.id)].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
     return{...m,hariTiada:rs.length?Math.floor((Date.now()-new Date(rs[0].tarikh))/(864e5)):999};
   });
 
-  // ── Carta Mingguan — 5 hari persekolahan SAHAJA (Isnin-Jumaat) ──
+  // ── Carta Mingguan — 5 hari persekolahan SAHAJA (Isnin=1 hingga Jumaat=5) ──
   const DAYS=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
   const hariSekolah=[];
   for(let i=0;i<21&&hariSekolah.length<5;i++){
     const d=new Date();
     d.setDate(d.getDate()-i);
-    const day=d.getDay();
-    if(day>=1&&day<=5) hariSekolah.unshift(d); // Isnin(1) hingga Jumaat(5)
+    if(d.getDay()>=1&&d.getDay()<=5) hariSekolah.unshift(d);
   }
   const mingguan=hariSekolah.map(d=>{
     const ds=d.toDateString();
@@ -3827,9 +3832,10 @@ async function masukApps(){
     if(dr.data.rekod) DB.rekod = dr.data.rekod;
     if(dr.data.khatam) DB.khatam = dr.data.khatam;
     if(dr.data.guru && dr.data.guru.length>0) DB.guru = dr.data.guru;
-    if(dr.data.murid && dr.data.murid.length>0 && dr.data.murid.length<=200){
+    if(dr.data.murid && dr.data.murid.length>0 && dr.data.murid.length<=170){
       DB.murid = dr.data.murid;
-    } else if(dr.data.murid && dr.data.murid.length>200){
+    } else if(dr.data.murid && dr.data.murid.length>170){
+      // Lebih 170 — ada murid extra/duplikat, buang terus
       DB.murid = dr.data.murid;
       dedupMurid();
     }
@@ -3840,20 +3846,19 @@ async function masukApps(){
   // Buang duplikat
   dedupMurid();
 
-  // SENTIASA seed jika tiada murid — tidak kira server OK atau tidak
+  // Seed jika tiada murid langsung
   const bilAktif = DB.murid.filter(m=>m.status==='Aktif').length;
   if(bilAktif === 0){
     const {added} = seedMuridSKDK();
     showT('📚 '+added+' murid SK Datin Khadijah dimuatkan!','ok',4000);
-    // Upload ke server selepas seed — dengan delay supaya UI sempat render
+    // Upload batch ke server (lebih selamat dari satu-persatu)
     if(API_URL && !IS_OFFLINE){
       setTimeout(async()=>{
-        let ok=0;
-        for(const m of DB.murid){
-          try{const r=await api('addMurid',{murid:m});if(r.ok)ok++;}catch(e){}
-        }
-        if(ok>0) showT('✅ '+ok+' murid dihantar ke Google Sheets','ok',3000);
-      }, 2000);
+        try{
+          const r=await api('resetMurid',{});
+          if(r.ok) showT('✅ '+r.added+' murid dalam Google Sheets','ok',3000);
+        }catch(e){}
+      }, 1500);
     }
   }
 
