@@ -976,6 +976,10 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
                 <span>☁️ Sync Google Sheets</span>
                 <span style="font-size:10px;opacity:.7">Hantar semua data ke server</span>
               </button>
+              <button class="btn btn-s" onclick="syncRekodDanMurid()" style="flex-direction:column;gap:4px;height:60px;justify-content:center;background:#e8f5e9;color:#1b5e20;border-color:#a5d6a7">
+                <span>🔄 Sync Rekod & Peringkat</span>
+                <span style="font-size:10px;opacity:.7">Kemaskini kemajuan murid</span>
+              </button>
               <button class="btn btn-s" onclick="doBackupJSON()" style="flex-direction:column;gap:4px;height:60px;justify-content:center">
                 <span>💾 Backup Data</span>
                 <span style="font-size:10px;opacity:.7">Download fail JSON</span>
@@ -2105,36 +2109,79 @@ async function ktSahkan(){
   const id=document.getElementById('ktM').value;
   if(!id){showT('Sila pilih murid','err');return;}
   const m=DB.murid.find(x=>x.id===id);if(!m)return;
-  if(!confirm('Sahkan '+m.nama+' telah khatam Al-Quran?'))return;
   const kBaru=(m.bilKhatam||0)+1;
+  if(!confirm('Sahkan '+m.nama+' telah khatam Al-Quran buat kali ke-'+kBaru+'?'))return;
   const tahun=parseInt(document.getElementById('ktTh').value)||new Date().getFullYear();
-  const r=await api('addKhatam',{khatam:{
+  const khatamData={
     muridId:id,muridNama:m.nama,darjah:m.darjah,kelas:m.kelas,
-    bilangan:kBaru,tahun,tarikh:document.getElementById('ktT').value||new Date().toISOString().split('T')[0],
+    bilangan:kBaru,tahun,
+    tarikh:document.getElementById('ktT').value||new Date().toISOString().split('T')[0],
     catatan:document.getElementById('ktCt').value,
     guru:document.getElementById('ktGr').value||(CU?.nama||''),guruId:CU?.id||''
-  }});
+  };
+  const r=await api('addKhatam',{khatam:khatamData});
   if(!r.ok){showT(r.msg||'Gagal','err');return;}
-  document.getElementById('ktM').value='';document.getElementById('ktDisp').style.display='none';document.getElementById('ktCt').value='';
-  showT('🏆 MasyaAllah! '+m.nama+' Khatam ke-'+kBaru+' ('+tahun+')!','ok',5000);
+
+  // ── Kemaskini DB tempatan (penting untuk dashboard) ──
+  const idx=DB.murid.findIndex(x=>x.id===id);
+  if(idx>=0){
+    DB.murid[idx].bilKhatam=kBaru;
+    DB.murid[idx].peringkat='Khatam';
+    DB.murid[idx].mukaSurat=604;
+  }
+  DB.khatam.push({id:r.id||genId('KH'),...khatamData});
+  saveLocal();
+
+  // Reset form
+  document.getElementById('ktM').value='';
+  document.getElementById('ktDisp').style.display='none';
+  document.getElementById('ktCt').value='';
+
+  showT('🏆 MasyaAllah! '+m.nama+' Khatam ke-'+kBaru+' ('+tahun+')!','ok',6000);
   renderKhatamHist();renderDash();populateSels();
 }
 
 function renderKhatamHist(){
-  const list=[...DB.khatam].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
   const el=document.getElementById('ktHist');
-  if(!list.length){el.innerHTML='<div class="es"><div class="ei">🏆</div><p>Belum ada rekod khatam</p></div>';return;}
-  el.innerHTML=list.map(k=>`
-    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray2)">
-      <div style="font-size:22px">🏆</div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:700;color:var(--gray8)">${esc(k.muridNama)}</div>
-        <div style="font-size:12px;color:var(--gray5);margin-top:2px">${k.darjah} ${k.kelas} • Tahun ${k.tahun} • ${fmtD(k.tarikh)}</div>
-        ${k.catatan?`<div style="font-size:11px;color:var(--gray4);font-style:italic">"${esc(k.catatan)}"</div>`:''}
-        <div style="font-size:11px;color:var(--gray4)">Guru: ${esc(k.guru||'—')}</div>
+  if(!DB.khatam.length){
+    el.innerHTML='<div class="es"><div class="ei">🏆</div><p>Belum ada rekod khatam</p></div>';
+    return;
+  }
+
+  // Kumpulkan mengikut murid — satu blok per murid, tunjuk semua khatam dia
+  const byMurid={};
+  [...DB.khatam].sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh)).forEach(k=>{
+    const key=k.muridId||k.muridNama;
+    if(!byMurid[key]) byMurid[key]={nama:k.muridNama,darjah:k.darjah,kelas:k.kelas,senarai:[]};
+    byMurid[key].senarai.push(k);
+  });
+
+  el.innerHTML=Object.values(byMurid).map(murid=>{
+    const jumlah=murid.senarai.length;
+    const senaraiHtml=murid.senarai.map((k,i)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:5px 0;${i<murid.senarai.length-1?'border-bottom:1px solid var(--gray2)':''}">
+        <span class="bdg bb" style="font-size:11px;flex-shrink:0">Ke-${k.bilangan}</span>
+        <div style="flex:1;font-size:12px;color:var(--gray6)">
+          Tahun ${k.tahun} • ${fmtD(k.tarikh)}
+          ${k.catatan?`<span style="font-style:italic;color:var(--gray4)"> — "${esc(k.catatan)}"</span>`:''}
+        </div>
+        <div style="font-size:11px;color:var(--gray4)">${esc(k.guru||'')}</div>
+      </div>`).join('');
+
+    return`<div style="padding:14px 0;border-bottom:2px solid var(--gray2)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="font-size:28px">🏆</div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--gray8)">${esc(murid.nama)}</div>
+          <div style="font-size:12px;color:var(--gray5)">${murid.darjah} ${murid.kelas}</div>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:var(--goldd)">${jumlah}x Khatam</div>
       </div>
-      <div style="font-size:24px;font-weight:800;color:var(--goldd)">${k.bilangan}x</div>
-    </div>`).join('');
+      <div style="background:var(--gray0);border-radius:var(--r-sm);padding:8px 12px">
+        ${senaraiHtml}
+      </div>
+    </div>`;
+  }).join('');
 }
 
 /* ═══════════════════════════════════════
@@ -3044,6 +3091,71 @@ function updateStatsTetapan(){
   if(sm) sm.textContent=(DB.murid||[]).filter(m=>m.status==='Aktif').length+' murid aktif';
   if(sr) sr.textContent=(DB.rekod||[]).length+' rekod';
   if(sg) sg.textContent=GURU_SKDK.length+' guru';
+}
+
+// Sync rekod dari server dan kemaskini peringkat murid mengikut rekod terkini
+async function syncRekodDanMurid(){
+  if(!API_URL||IS_OFFLINE){showT('Perlu sambungan internet','err');return;}
+  showT('⏳ Mengambil rekod dari server...','',8000);
+
+  try{
+    const fresh=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
+    if(!fresh.ok){showT('❌ Gagal ambil data dari server','err');return;}
+
+    // Ambil rekod dan khatam dari server
+    if(fresh.data.rekod) DB.rekod=fresh.data.rekod;
+    if(fresh.data.khatam) DB.khatam=fresh.data.khatam;
+
+    // Kemaskini peringkat murid berdasarkan rekod terkini
+    // (rekod yang ada 'kemaskini:true' atau 'naikPeringkat:true')
+    let dikemaskini=0;
+    DB.murid.forEach((m,idx)=>{
+      const rs=[...DB.rekod.filter(r=>r.muridId===m.id)]
+        .sort((a,b)=>new Date(b.tarikh)-new Date(a.tarikh));
+      if(!rs.length) return;
+
+      // Cari rekod terakhir yang ada kemaskini atau naik peringkat
+      const rKemaskini=rs.find(r=>r.kemaskini||r.naikPeringkat);
+      if(rKemaskini){
+        if(rKemaskini.naikPeringkat){
+          const ci=PO.indexOf(rKemaskini.peringkat);
+          const next=ci>=0&&ci<PO.length-1?PO[ci+1]:rKemaskini.peringkat;
+          if(DB.murid[idx].peringkat!==next){
+            DB.murid[idx].peringkat=next;
+            DB.murid[idx].mukaSurat=rKemaskini.ke||DB.murid[idx].mukaSurat;
+            DB.murid[idx].jenis=rKemaskini.jenis||DB.murid[idx].jenis;
+            dikemaskini++;
+          }
+        } else if(rKemaskini.kemaskini){
+          if(DB.murid[idx].peringkat!==rKemaskini.peringkat||DB.murid[idx].mukaSurat!==rKemaskini.ke){
+            DB.murid[idx].peringkat=rKemaskini.peringkat;
+            DB.murid[idx].mukaSurat=rKemaskini.ke||DB.murid[idx].mukaSurat;
+            DB.murid[idx].jenis=rKemaskini.jenis||DB.murid[idx].jenis;
+            DB.murid[idx].iqraLabel=rKemaskini.iqraLabel||DB.murid[idx].iqraLabel;
+            dikemaskini++;
+          }
+        }
+      }
+
+      // Kemaskini bilKhatam dari rekod khatam
+      const ktMurid=DB.khatam.filter(k=>k.muridId===m.id);
+      if(ktMurid.length>0){
+        const bilTerbaru=Math.max(...ktMurid.map(k=>k.bilangan||0));
+        if(DB.murid[idx].bilKhatam!==bilTerbaru){
+          DB.murid[idx].bilKhatam=bilTerbaru;
+          DB.murid[idx].peringkat='Khatam';
+          dikemaskini++;
+        }
+      }
+    });
+
+    saveLocal();
+    renderDash();renderMurid();renderKhatamHist();populateSels();updateStatsTetapan();
+    showT('✅ Sync selesai! '+DB.rekod.length+' rekod, '+DB.khatam.length+' khatam, '+dikemaskini+' murid dikemaskini peringkat','ok',6000);
+
+  }catch(e){
+    showT('❌ Sync gagal: '+e.message,'err');
+  }
 }
 
 function manualDedup(){
