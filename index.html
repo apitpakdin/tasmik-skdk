@@ -1385,7 +1385,23 @@ function get5HariSekolah(){
 
 function buildLocalDashboard(){
   const isAdmin=CU?.peranan==='admin';
-  const guruKelas=CU?.darjah&&CU?.kelas?{darjah:CU.darjah,kelas:CU.kelas}:null;
+
+  // Cari kelas guru — dari CU atau dari GURU_SKDK
+  let guruKelas=null;
+  if(!isAdmin){
+    if(CU?.darjah&&CU?.kelas){
+      guruKelas={darjah:CU.darjah,kelas:CU.kelas};
+    } else if(CU?.id){
+      // Cari dari GURU_SKDK
+      const gData=GURU_SKDK.find(g=>g.id===CU.id);
+      if(gData&&gData.kelas.length>0){
+        guruKelas={darjah:gData.kelas[0].darjah,kelas:gData.kelas[0].kelas};
+        // Kemaskini CU supaya sync betul
+        CU.darjah=guruKelas.darjah;
+        CU.kelas=guruKelas.kelas;
+      }
+    }
+  }
 
   // Dedup dulu sebelum kira
   dedupMurid();
@@ -1511,30 +1527,38 @@ async function syncData(){
   document.getElementById('syncBanner').classList.add('show');
 
   try{
-    // Langkah 1: Hantar rekod dalam pending queue sahaja
+    // Langkah 1: Hantar rekod dalam pending queue ke server
     let rekodHantar=0;
-    for(const item of [...pendingSync]){
-      const res=await api(item.action,item.body);
-      if(res.ok){
-        pendingSync=pendingSync.filter(p=>p.ts!==item.ts);
-        rekodHantar++;
-      }
+    const queueSemasa=[...pendingSync];
+    for(const item of queueSemasa){
+      try{
+        const res=await api(item.action,item.body);
+        if(res.ok){
+          pendingSync=pendingSync.filter(p=>p.ts!==item.ts);
+          rekodHantar++;
+        }
+      }catch(e){}
     }
     localStorage.setItem('skdk_pending',JSON.stringify(pendingSync));
 
     // Langkah 2: Ambil data terkini dari server
     const fresh=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
     if(fresh.ok && fresh.data){
-      // Rekod & khatam — ambil dari server (sumber kebenaran)
-      if(fresh.data.rekod) DB.rekod=fresh.data.rekod;
+      // Rekod — gabung server + rekod tempatan yang belum dihantar (pending)
+      if(fresh.data.rekod){
+        const serverRekodIds=new Set(fresh.data.rekod.map(r=>r.id));
+        // Kekal rekod tempatan yang masih pending (belum di server)
+        const rekodPending=DB.rekod.filter(r=>
+          r.id&&r.id.startsWith('R')&&!serverRekodIds.has(r.id)&&
+          pendingSync.some(p=>p.action==='addRekod')
+        );
+        DB.rekod=[...fresh.data.rekod,...rekodPending];
+      }
       if(fresh.data.khatam) DB.khatam=fresh.data.khatam;
       if(fresh.data.guru&&fresh.data.guru.length>0) DB.guru=fresh.data.guru;
-
-      // Murid — ambil dari server HANYA jika bilangan munasabah
-      if(fresh.data.murid&&fresh.data.murid.length>0&&fresh.data.murid.length<=200){
+      if(fresh.data.murid&&fresh.data.murid.length>0&&fresh.data.murid.length<=170){
         DB.murid=fresh.data.murid;
       }
-      // Jika server ada lebih 200 murid — ada masalah, ignore dan guna tempatan
       dedupMurid();
       saveLocal();
     }
@@ -1544,8 +1568,8 @@ async function syncData(){
     document.getElementById('syncBanner').classList.remove('show');
     updateSyncStatus(true);
     const bil=DB.murid.filter(m=>m.status==='Aktif').length;
-    showT('✅ Sync berjaya! '+bil+' murid aktif'+(rekodHantar?' | '+rekodHantar+' rekod dihantar':''),'ok',4000);
-    renderDash();renderMurid();renderGuru();renderAlert();renderKhatamHist();renderRekodToday();
+    showT('✅ Sync berjaya! '+bil+' murid'+(rekodHantar?' | '+rekodHantar+' rekod dihantar':''),'ok',4000);
+    renderDash();renderAlert();renderRekodToday();renderKhatamHist();
 
   }catch(e){
     showT('❌ Sync gagal: '+e.message,'err');
@@ -4005,8 +4029,18 @@ loadConfig();
   const sesiLepas = muatSesi();
 
   if(sesiLepas){
-    // ✅ Ada sesi — terus masuk tanpa login!
     CU = sesiLepas;
+
+    // Pastikan CU.darjah dan CU.kelas ada (dari GURU_SKDK)
+    if(CU.peranan==='guru' && (!CU.darjah||!CU.kelas)){
+      const guruData=GURU_SKDK.find(g=>g.id===CU.id);
+      if(guruData&&guruData.kelas.length>0){
+        CU.darjah=guruData.kelas[0].darjah;
+        CU.kelas=guruData.kelas[0].kelas;
+        simpanSesi(CU); // kemaskini sesi
+      }
+    }
+
     document.getElementById('configScreen').classList.add('hidden');
     document.getElementById('loginScreen').classList.add('hidden');
     await masukApps();
