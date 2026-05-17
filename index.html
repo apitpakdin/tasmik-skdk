@@ -1544,15 +1544,12 @@ async function syncData(){
     // Langkah 2: Ambil data terkini dari server
     const fresh=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
     if(fresh.ok && fresh.data){
-      // Rekod — gabung server + rekod tempatan yang belum dihantar (pending)
+      // Rekod — GABUNG server + tempatan, jangan padam tempatan
       if(fresh.data.rekod){
-        const serverRekodIds=new Set(fresh.data.rekod.map(r=>r.id));
-        // Kekal rekod tempatan yang masih pending (belum di server)
-        const rekodPending=DB.rekod.filter(r=>
-          r.id&&r.id.startsWith('R')&&!serverRekodIds.has(r.id)&&
-          pendingSync.some(p=>p.action==='addRekod')
-        );
-        DB.rekod=[...fresh.data.rekod,...rekodPending];
+        const serverIds=new Set(fresh.data.rekod.map(r=>r.id));
+        // Rekod tempatan yang belum ada di server — kekal
+        const lokalSahaja=DB.rekod.filter(r=>!serverIds.has(r.id));
+        DB.rekod=[...fresh.data.rekod,...lokalSahaja];
       }
       if(fresh.data.khatam) DB.khatam=fresh.data.khatam;
       if(fresh.data.guru&&fresh.data.guru.length>0) DB.guru=fresh.data.guru;
