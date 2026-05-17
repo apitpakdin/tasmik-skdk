@@ -1681,11 +1681,20 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
    DASHBOARD
 ═══════════════════════════════════════ */
 async function renderDash(){
-  const r=await api('getDashboard',{userId:CU?.id,peranan:CU?.peranan});
+  // Guna local data terus — laju dan tepat
+  const r=buildLocalDashboard();
   if(!r.ok)return;
-  const d=r.dashboard;
+  renderDashData(r.dashboard);
 
-  // Tajuk dashboard — tunjuk kelas jika guru
+  // Refresh dari server di background (untuk data terkini)
+  if(API_URL&&!IS_OFFLINE){
+    api('getDashboard',{userId:CU?.id,peranan:CU?.peranan}).then(sr=>{
+      if(sr.ok&&sr.dashboard) renderDashData(sr.dashboard);
+    }).catch(()=>{});
+  }
+}
+
+function renderDashData(d){
   const kelasLabel=d.kelasInfo||'';
   document.getElementById('pageS').textContent=SKDK+(kelasLabel?' | '+kelasLabel:'');
 
@@ -1697,18 +1706,15 @@ async function renderDash(){
     <div class="sc ap"><div class="si">📚</div><div class="sv">${d.sedangIqra}</div><div class="sl">Sedang Iqra</div></div>
     <div class="sc ag"><div class="si">📖</div><div class="sv">${d.sedangQuran}</div><div class="sl">Baca Al-Quran</div></div>`;
 
-  // ── Carta Mingguan — Hari Persekolahan Sahaja (Isnin-Jumaat) ──
+  // ── Carta Mingguan ──
   const mx=Math.max(...d.mingguan.map(x=>x.sesi),1);
   const jumlahMinggu=d.mingguan.reduce((a,x)=>a+x.sesi,0);
-  const muridMinggu=d.mingguan.reduce((a,x)=>a+(x.muridUnik||0),0);
   document.getElementById('wkChart').innerHTML=`
     <div class="mbc">${d.mingguan.map(x=>`
       <div class="mb" style="height:${Math.max(4,x.sesi/mx*110)}px;background:${x.sesi?'var(--g3)':'var(--gray2)'};opacity:${x.sesi?1:.4}"
         data-t="${x.hari} (${x.tarikh||''}): ${x.sesi} sesi${x.muridUnik?' | '+x.muridUnik+' murid':''}"></div>`).join('')}</div>
     <div class="bls">${d.mingguan.map(x=>`<div class="bl">${x.hari.split(' ')[0]}<br>${x.hari.split(' ')[1]||''}</div>`).join('')}</div>
-    <div style="font-size:11px;color:var(--gray4);margin-top:6px">
-      ${jumlahMinggu} sesi minggu ini • Isnin–Jumaat sahaja
-    </div>`;
+    <div style="font-size:11px;color:var(--gray4);margin-top:6px">${jumlahMinggu} sesi minggu ini • Isnin–Jumaat sahaja</div>`;
 
   // ── Carta Bulanan ──
   const mx2=Math.max(...d.bulanan.map(x=>x.sesi),1);
@@ -1720,7 +1726,7 @@ async function renderDash(){
   document.getElementById('dashAlertCount').textContent=d.jumlahAlert;
   const ae=document.getElementById('dashAlerts');
   if(!d.alerts.length){
-    ae.innerHTML='<div class="es"><div class="ei">✅</div><p>Semua murid'+kelasLabel+' aktif!</p></div>';
+    ae.innerHTML='<div class="es"><div class="ei">✅</div><p>Semua murid aktif!</p></div>';
   } else {
     ae.innerHTML=d.alerts.map(m=>`
       <div class="alert-item ${m.hariTiada>14?'':'warn'}">
@@ -1990,8 +1996,20 @@ async function rkSimpan(){
   const dari=parseInt(document.getElementById('rkDr').value);
   const ke=parseInt(document.getElementById('rkKe').value);
   if(!dari||!ke||ke<dari){showT('Muka surat tidak sah — semak nombor Dari dan Ke','err');return;}
-  const m=DB.murid.find(x=>x.id===muridId);
-  if(!m){showT('Murid tidak dijumpai — cuba pilih semula','err');return;}
+  let m=DB.murid.find(x=>x.id===muridId);
+  if(!m){
+    // Cuba cari dari nama yang terpapar
+    const namaTerpapar=document.getElementById('rkMuridNama')?.textContent||'';
+    if(namaTerpapar) m=DB.murid.find(x=>x.nama===namaTerpapar&&x.status==='Aktif');
+    if(m){
+      rkMuridId=m.id; // kemaskini ID
+    } else {
+      showT('Murid tidak dijumpai — sila pilih semula dari senarai','err');
+      rkMuridId='';
+      rkFiltMurid();
+      return;
+    }
+  }
 
   const peringkat=document.getElementById('rkP').value;
   const iqraLabel=document.getElementById('rkIL').value;
@@ -2147,7 +2165,11 @@ async function ktSahkan(){
   document.getElementById('ktCt').value='';
 
   showT('🏆 MasyaAllah! '+m.nama+' Khatam ke-'+kBaru+' ('+tahun+')!','ok',6000);
-  renderKhatamHist();renderDash();populateSels();
+  renderKhatamHist();
+  // Paksa guna local dashboard — server mungkin belum update
+  const dash=buildLocalDashboard();
+  if(dash.ok) renderDashData(dash.dashboard);
+  populateSels();
 }
 
 function renderKhatamHist(){
@@ -2215,19 +2237,27 @@ function renderLap(){
 }
 
 function renderLapM(){
-  const myRekod=CU?.peranan==='admin'?DB.rekod:DB.rekod.filter(r=>r.guruId===CU?.id);
+  const myRekod=CU?.peranan==='admin'?DB.rekod:DB.rekod.filter(r=>r.darjah===CU?.darjah&&r.kelas===CU?.kelas);
   const rows=[];
-  for(let i=6;i>=0;i--){
+  const days=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
+
+  // 5 hari persekolahan sahaja — Isnin hingga Jumaat
+  const hariSekolah=[];
+  for(let i=0;i<21&&hariSekolah.length<5;i++){
     const d=new Date();d.setDate(d.getDate()-i);
+    if(d.getDay()>=1&&d.getDay()<=5) hariSekolah.unshift(d);
+  }
+
+  hariSekolah.forEach(d=>{
     const ds=d.toDateString();
     const rs=myRekod.filter(r=>new Date(r.tarikh).toDateString()===ds);
     const mn=new Set(rs.map(r=>r.muridId)).size;
     const mp=rs.reduce((a,r)=>a+(r.jumlah||0),0);
     const cml=rs.filter(r=>(r.kualiti||'').startsWith('Cemerlang')).length;
-    const days=['Ahad','Isnin','Selasa','Rabu','Khamis','Jumaat','Sabtu'];
     rows.push(`<tr><td><b>${days[d.getDay()]}, ${fmtD(d.toISOString())}</b></td><td style="text-align:center">${rs.length}</td><td style="text-align:center">${mn}</td><td style="text-align:center">${mp}</td><td style="text-align:center"><span class="bdg bg">${rs.length?Math.round(cml/rs.length*100):0}%</span></td></tr>`);
-  }
-  document.getElementById('lapContent').innerHTML=`<div class="card"><div class="ch"><h3>📈 Laporan Mingguan SK Datin Khadijah</h3></div><div class="cb np" style="overflow-x:auto"><table class="dt"><thead><tr><th>Hari</th><th>Sesi</th><th>Murid</th><th>Jml M/S</th><th>% Cemerlang</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
+  });
+
+  document.getElementById('lapContent').innerHTML=`<div class="card"><div class="ch"><h3>📈 Laporan Mingguan (Isnin–Jumaat)</h3></div><div class="cb np" style="overflow-x:auto"><table class="dt"><thead><tr><th>Hari</th><th>Sesi</th><th>Murid</th><th>Jml M/S</th><th>% Cemerlang</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div>`;
 }
 
 function renderLapB(){
