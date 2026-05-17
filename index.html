@@ -1177,7 +1177,9 @@ const BL=['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogs','Sep','Okt','Nov','Dis
 const BLF=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
 const DARJAH=['Darjah 1','Darjah 2','Darjah 3','Darjah 4','Darjah 5','Darjah 6'];
 
-let API_URL = '';
+// URL Backend — dikemaskini secara automatik
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbxr8ry_lF5O51M7w7XcmbQ2p_0tVeZ1KvURe7dEvdug0U8VvQ90KLgTVt8DJrbx4A7ohA/exec';
+let API_URL = DEFAULT_API_URL;
 let IS_OFFLINE = false;
 let DB = {guru:[],murid:[],rekod:[],khatam:[]};
 let CU = null; // current user
@@ -1192,7 +1194,10 @@ let pendingSync=[]; // offline queue
 function loadConfig(){
   const saved=localStorage.getItem('skdk_api_url');
   const offline=localStorage.getItem('skdk_offline');
-  if(saved){API_URL=saved;document.getElementById('cfgUrl').value=saved;}
+  // Sentiasa guna DEFAULT_API_URL (kemaskini terbaru)
+  API_URL=DEFAULT_API_URL;
+  localStorage.setItem('skdk_api_url',DEFAULT_API_URL);
+  document.getElementById('cfgUrl').value=DEFAULT_API_URL;
   if(offline==='1') IS_OFFLINE=true;
 
   // Load local DB
