@@ -3764,18 +3764,36 @@ async function masukApps(){
 ═══════════════════════════════════════ */
 // ── FUNGSI KECEMASAN — taip isiMurid() dalam Console jika murid kosong ──
 async function isiMurid(){
+  showT('⏳ Mengisi murid ke Google Sheets...','',10000);
+
+  // Cuba backend reset dulu — lebih laju (satu batch)
+  if(API_URL && !IS_OFFLINE){
+    try{
+      const r = await api('resetMurid',{});
+      if(r.ok){
+        showT('✅ '+r.added+' murid diisi dalam Google Sheets!','ok',5000);
+        // Ambil semula dari server
+        const fresh = await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
+        if(fresh.ok && fresh.data?.murid && fresh.data.murid.length>0){
+          DB.murid = fresh.data.murid;
+          dedupMurid();
+          saveLocal();
+        }
+        renderMurid();renderDash();populateSels();updateStatsTetapan();
+        showT('✅ Selesai! '+DB.murid.filter(m=>m.status==='Aktif').length+' murid aktif','ok',5000);
+        return;
+      }
+    }catch(e){
+      showT('⚠️ Backend gagal, isi tempatan sahaja...','warn',3000);
+    }
+  }
+
+  // Fallback: isi tempatan sahaja
   DB.murid=[];
   const {added}=seedMuridSKDK();
   saveLocal();
-  renderMurid();renderDash();populateSels();
-  showT('✅ '+added+' murid diisi semula!','ok',4000);
-  if(API_URL&&!IS_OFFLINE){
-    let ok=0;
-    for(const m of DB.murid){
-      try{const r=await api('addMurid',{murid:m});if(r.ok)ok++;}catch(e){}
-    }
-    showT('✅ '+ok+' murid dihantar ke Google Sheets','ok',5000);
-  }
+  renderMurid();renderDash();populateSels();updateStatsTetapan();
+  showT('✅ '+added+' murid diisi (tempatan sahaja — sync manual diperlukan)','ok',5000);
 }
 
 // ── Mobile Layout Fix (CSS sahaja - tiada JS override navTo) ──
