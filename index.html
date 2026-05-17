@@ -1309,9 +1309,19 @@ async function api(action, body={}){
       throw new Error('Respons kosong dari server');
     }
 
-    // GAS kadang-kadang wrap dalam callback — strip jika ada
-    const clean = text.trim().replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
-    const data = JSON.parse(clean || text);
+    // Parse JSON — cuba beberapa cara
+    let data;
+    try{
+      data = JSON.parse(text.trim());
+    }catch(e1){
+      // Cuba strip watak luar JSON
+      const clean = text.trim().replace(/^[^{[]*/, '').replace(/[^}\]]*$/, '');
+      try{
+        data = JSON.parse(clean);
+      }catch(e2){
+        throw new Error('Respons tidak sah dari server: '+text.slice(0,80));
+      }
+    }
     return data;
 
   }catch(e){
@@ -1702,17 +1712,10 @@ function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').
    DASHBOARD
 ═══════════════════════════════════════ */
 async function renderDash(){
-  // Guna local data terus — laju dan tepat
+  // Guna local data sahaja — tepat dan tiada flicker
   const r=buildLocalDashboard();
   if(!r.ok)return;
   renderDashData(r.dashboard);
-
-  // Refresh dari server di background (untuk data terkini)
-  if(API_URL&&!IS_OFFLINE){
-    api('getDashboard',{userId:CU?.id,peranan:CU?.peranan}).then(sr=>{
-      if(sr.ok&&sr.dashboard) renderDashData(sr.dashboard);
-    }).catch(()=>{});
-  }
 }
 
 function renderDashData(d){
@@ -2078,7 +2081,7 @@ async function rkSimpan(){
   // Tunjuk rekod terus — jangan tunggu server
   renderRekodToday();
   if(rekod.kemaskini||rekod.naikPeringkat) rkOnMurid();
-  showT('✅ Rekod disimpan!'+(rekod.naikPeringkat?' 🎉 Naik peringkat!':''),'ok',2500);
+  showT('💾 Menyimpan rekod...','',1500);
 
   // Reset form (kekal murid yang sama)
   document.getElementById('rkDr').value='';
@@ -2091,22 +2094,22 @@ async function rkSimpan(){
   lastMuridId=muridId;
   localStorage.setItem('skdk_last_murid',muridId);
 
-  // ── HANTAR KE SERVER (background — tidak blok UI) ──
+  // ── HANTAR KE SERVER (background) ──
   try{
     const r=await api('addRekod',{rekod});
     if(r.ok){
-      // Kemaskini ID dari server
       const ri=DB.rekod.findIndex(x=>x.id===localId);
       if(ri>=0) DB.rekod[ri].id=r.id||localId;
       saveLocal();
+      // Tunjuk konfirmasi rekod masuk Sheets
+      showT('✅ Rekod disimpan & dihantar ke Sheets!','ok',2500);
     } else {
-      // Server gagal — queue untuk sync nanti
       queueSync('addRekod',{rekod});
-      showT('⚠️ Rekod disimpan offline. Akan sync bila ada internet.','warn',4000);
+      showT('⚠️ Disimpan offline — tap Sync Data bila ada internet','warn',4000);
     }
   }catch(e){
     queueSync('addRekod',{rekod});
-    showT('⚠️ Rekod disimpan offline. Akan sync bila ada internet.','warn',4000);
+    showT('⚠️ Disimpan offline — tap Sync Data bila ada internet','warn',4000);
   }
 
   renderDash();updateAlertBadge();
