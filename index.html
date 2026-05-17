@@ -518,6 +518,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
     </nav>
     <div class="sb-bot">
       <button class="sb-bot-btn" onclick="syncData()">🔄 <span>Sync Data</span></button>
+      <button class="sb-bot-btn" onclick="syncRekodDanMurid()" style="background:rgba(82,183,136,.2);color:#b7e4c7">📊 <span>Sync Rekod & Peringkat</span></button>
       <button class="sb-bot-btn" id="btnInstallPWA" style="display:none;background:rgba(255,215,0,.15);color:#ffd700" onclick="installPWA()">📲 <span>Install Apps</span></button>
       <button class="sb-bot-btn" id="btnTukarKelas" style="display:none" onclick="tukarKelasGuru()">🏫 <span>Tukar Kelas</span></button>
       <button class="sb-bot-btn" onclick="tukarKataLaluan()">🔑 <span>Tukar Kata Laluan</span></button>
@@ -558,6 +559,9 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
           </button>
           <button class="btn" style="padding:14px 10px;font-size:13px;justify-content:center;flex-direction:column;gap:4px;height:70px;background:#e8eaf6;color:#283593;border:1.5px solid #9fa8da" onclick="navTo('laporan',null)">
             <span style="font-size:22px">📊</span>Lihat Laporan
+          </button>
+          <button class="btn" style="padding:14px 10px;font-size:13px;justify-content:center;flex-direction:column;gap:4px;height:70px;background:#e8f5e9;color:#1b5e20;border:1.5px solid #a5d6a7" onclick="syncRekodDanMurid()">
+            <span style="font-size:22px">🔄</span>Sync Peringkat
           </button>
         </div>
 
