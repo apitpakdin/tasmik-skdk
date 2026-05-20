@@ -1197,16 +1197,18 @@ function loadConfig(){
   const savedVersion = localStorage.getItem('skdk_version');
   if (savedVersion !== APP_VERSION) {
     // Versi baru — paksa kemaskini URL dan clear cache lama
-    localStorage.setItem('skdk_api_url', DEFAULT_API_URL);
     localStorage.setItem('skdk_version', APP_VERSION);
     localStorage.removeItem('skdk_offline');
     console.log('Versi baru '+APP_VERSION+' — URL dikemaskini');
   }
 
-  // Sentiasa guna DEFAULT_API_URL
-  localStorage.setItem('skdk_api_url', DEFAULT_API_URL);
-  API_URL = DEFAULT_API_URL;
-  document.getElementById('cfgUrl').value = DEFAULT_API_URL;
+  // Guna URL yang pernah disimpan. Jika belum ada, baru guna URL default.
+  // Jangan paksa DEFAULT_API_URL setiap kali app dibuka kerana URL deployment
+  // Apps Script boleh berubah selepas cikgu deploy semula.
+  const savedUrl = localStorage.getItem('skdk_api_url');
+  API_URL = savedUrl || DEFAULT_API_URL;
+  if(!savedUrl) localStorage.setItem('skdk_api_url', DEFAULT_API_URL);
+  document.getElementById('cfgUrl').value = API_URL;
 
   const offline=localStorage.getItem('skdk_offline');
   if(offline==='1') IS_OFFLINE=true;
@@ -1351,6 +1353,13 @@ async function api(action, body={}){
     } else {
       showT('⚠️ '+e.message,'warn',4000);
     }
+    // Untuk operasi tulis, jangan pulangkan ok:true jika server gagal.
+    // Biar pemanggil yang masukkan ke queue supaya mesej tidak tersalah kata
+    // "dihantar ke Sheets" sedangkan data hanya tersimpan tempatan.
+    const writeActions = ['addMurid','addRekod','addKhatam','addGuru','editMurid','editGuru','changePass'];
+    if(writeActions.includes(action)){
+      return {ok:false, offline:true, msg:'Gagal sambung ke Google Sheets: '+e.message};
+    }
     return handleOffline(action, body);
   }
 }
@@ -1369,11 +1378,11 @@ function handleOffline(action, body){
 
   // Write actions: queue for later sync
   const id='local_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-  if(action==='addMurid'){DB.murid.push({id,...body.murid,status:'Aktif',tarihDaftar:new Date().toISOString(),tarihKemaskini:new Date().toISOString()});saveLocal();queueSync(action,body);return{ok:true,id};}
-  if(action==='addRekod'){DB.rekod.push({id,...body.rekod,tarikh:new Date().toISOString()});if(body.rekod.kemaskini||body.rekod.naikPeringkat) localUpdateMurid(body.rekod);saveLocal();queueSync(action,body);return{ok:true,id};}
-  if(action==='addKhatam'){DB.khatam.push({id,...body.khatam});localKhatamMurid(body.khatam);saveLocal();queueSync(action,body);return{ok:true,id};}
-  if(action==='addGuru'){DB.guru.push({id,...body.guru,status:'Aktif'});saveLocal();queueSync(action,body);return{ok:true,id};}
-  if(action==='editMurid'){const i=DB.murid.findIndex(m=>m.id===body.murid.id);if(i>=0){DB.murid[i]={...DB.murid[i],...body.murid};saveLocal();}queueSync(action,body);return{ok:true};}
+  if(action==='addMurid'){DB.murid.push({id,...body.murid,status:'Aktif',tarihDaftar:new Date().toISOString(),tarihKemaskini:new Date().toISOString()});saveLocal();queueSync(action,body);return{ok:true,id,offline:true,queued:true};}
+  if(action==='addRekod'){const wujud=DB.rekod.some(r=>r.muridId===body.rekod.muridId&&r.tarikh===body.rekod.tarikh&&String(r.dari)===String(body.rekod.dari)&&String(r.ke)===String(body.rekod.ke));if(!wujud)DB.rekod.push({id,...body.rekod,tarikh:body.rekod.tarikh||new Date().toISOString()});if(body.rekod.kemaskini||body.rekod.naikPeringkat) localUpdateMurid(body.rekod);saveLocal();queueSync(action,body);return{ok:true,id,offline:true,queued:true};}
+  if(action==='addKhatam'){DB.khatam.push({id,...body.khatam});localKhatamMurid(body.khatam);saveLocal();queueSync(action,body);return{ok:true,id,offline:true,queued:true};}
+  if(action==='addGuru'){DB.guru.push({id,...body.guru,status:'Aktif'});saveLocal();queueSync(action,body);return{ok:true,id,offline:true,queued:true};}
+  if(action==='editMurid'){const i=DB.murid.findIndex(m=>m.id===body.murid.id);if(i>=0){DB.murid[i]={...DB.murid[i],...body.murid};saveLocal();}queueSync(action,body);return{ok:true,offline:true,queued:true};}
   return{ok:false,msg:'Offline - tidak dapat proses: '+action};
 }
 
@@ -1499,7 +1508,12 @@ function buildLocalDashboard(){
   }};
 }
 
-function queueSync(action,body){pendingSync.push({action,body,ts:Date.now()});localStorage.setItem('skdk_pending',JSON.stringify(pendingSync));}
+function queueSync(action,body){
+  const key=JSON.stringify({action,body});
+  const sudahAda=pendingSync.some(item=>JSON.stringify({action:item.action,body:item.body})===key);
+  if(!sudahAda) pendingSync.push({action,body,ts:Date.now()});
+  localStorage.setItem('skdk_pending',JSON.stringify(pendingSync));
+}
 function saveLocal(){localStorage.setItem('skdk_db',JSON.stringify(DB));}
 
 // ── Buang duplikat murid (sama nama + darjah + kelas) ──
@@ -2113,14 +2127,14 @@ async function rkSimpan(){
   // ── HANTAR KE SERVER (background) ──
   try{
     const r=await api('addRekod',{rekod});
-    if(r.ok){
+    if(r.ok && !r.offline){
       const ri=DB.rekod.findIndex(x=>x.id===localId);
       if(ri>=0) DB.rekod[ri].id=r.id||localId;
       saveLocal();
       // Tunjuk konfirmasi rekod masuk Sheets
       showT('✅ Rekod disimpan & dihantar ke Sheets!','ok',2500);
     } else {
-      queueSync('addRekod',{rekod});
+      if(!r.queued) queueSync('addRekod',{rekod});
       showT('⚠️ Disimpan offline — tap Sync Data bila ada internet','warn',4000);
     }
   }catch(e){
