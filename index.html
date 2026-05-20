@@ -1179,6 +1179,7 @@ const DARJAH=['Darjah 1','Darjah 2','Darjah 3','Darjah 4','Darjah 5','Darjah 6']
 
 // URL Backend — dikemaskini secara automatik
 const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbw8QQ9CXK8IhUtZ1yhVS409-4uIqO-rfKHey4ne3SNxjBXqbSPz-qkMFaoYIg3P4RTn-Q/exec';
+const APP_VERSION = '2.1'; // Naikkan nombor ini setiap kali update
 let API_URL = DEFAULT_API_URL;
 let IS_OFFLINE = false;
 let DB = {guru:[],murid:[],rekod:[],khatam:[]};
@@ -1192,7 +1193,17 @@ let pendingSync=[]; // offline queue
    CONFIG / BACKEND CONNECT
 ═══════════════════════════════════════ */
 function loadConfig(){
-  // Paksa guna URL terbaru — override URL lama dalam localStorage
+  // Semak versi — kalau versi berbeza, paksa guna URL baru
+  const savedVersion = localStorage.getItem('skdk_version');
+  if (savedVersion !== APP_VERSION) {
+    // Versi baru — paksa kemaskini URL dan clear cache lama
+    localStorage.setItem('skdk_api_url', DEFAULT_API_URL);
+    localStorage.setItem('skdk_version', APP_VERSION);
+    localStorage.removeItem('skdk_offline');
+    console.log('Versi baru '+APP_VERSION+' — URL dikemaskini');
+  }
+
+  // Sentiasa guna DEFAULT_API_URL
   localStorage.setItem('skdk_api_url', DEFAULT_API_URL);
   API_URL = DEFAULT_API_URL;
   document.getElementById('cfgUrl').value = DEFAULT_API_URL;
