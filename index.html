@@ -2052,17 +2052,10 @@ async function rkSimpan(){
   if(!dari||!ke||ke<dari){showT('Muka surat tidak sah — semak nombor Dari dan Ke','err');return;}
   let m=DB.murid.find(x=>x.id===muridId);
   if(!m){
-    // Cuba cari dari nama yang terpapar
     const namaTerpapar=document.getElementById('rkMuridNama')?.textContent||'';
     if(namaTerpapar) m=DB.murid.find(x=>x.nama===namaTerpapar&&x.status==='Aktif');
-    if(m){
-      rkMuridId=m.id; // kemaskini ID
-    } else {
-      showT('Murid tidak dijumpai — sila pilih semula dari senarai','err');
-      rkMuridId='';
-      rkFiltMurid();
-      return;
-    }
+    if(m){ rkMuridId=m.id; }
+    else { showT('Murid tidak dijumpai — sila pilih semula dari senarai','err'); rkMuridId=''; rkFiltMurid(); return; }
   }
 
   const peringkat=document.getElementById('rkP').value;
@@ -2074,10 +2067,9 @@ async function rkSimpan(){
     label=jD===jK?'Al-Quran (Juzuk '+jD+')':'Al-Quran (Juzuk '+jD+'-'+jK+')';
   }
 
-  const guruNama=document.getElementById('rkGr').value||(CU?.nama||'');
   const rekod={
     muridId, muridNama:m.nama, darjah:m.darjah, kelas:m.kelas,
-    guruId:CU?.id||'', guru:guruNama,
+    guruId:CU?.id||'', guru:document.getElementById('rkGr').value||(CU?.nama||''),
     jenis:rkJenisVal, peringkat, iqraLabel:label,
     dari, ke, jumlah:ke-dari+1, kualiti:rkQVal,
     catatan:document.getElementById('rkCt').value||'',
@@ -2088,11 +2080,18 @@ async function rkSimpan(){
     masa:now.toTimeString().slice(0,5)
   };
 
-  // ── SIMPAN TEMPATAN DAHULU (tidak kira server berjaya atau tidak) ──
-  const localId='R'+Date.now();
-  DB.rekod.push({id:localId,...rekod});
+  // ── IKUT CARA KHATAM — hantar ke server terus, tunggu response ──
+  showT('⏳ Menyimpan rekod...','',3000);
+  const r = await api('addRekod',{rekod});
+  if(!r.ok){
+    showT('❌ Gagal simpan: '+(r.msg||'Cuba sekali lagi'),'err',4000);
+    return;
+  }
 
-  // Kemaskini kedudukan murid dalam DB tempatan
+  // Berjaya — simpan dalam DB tempatan
+  DB.rekod.push({id:r.id||('R'+Date.now()),...rekod});
+
+  // Kemaskini peringkat murid
   const idx=DB.murid.findIndex(x=>x.id===muridId);
   if(rekod.naikPeringkat&&idx>=0){
     const ci=PO.indexOf(peringkat);
@@ -2108,40 +2107,18 @@ async function rkSimpan(){
   if(idx>=0) DB.murid[idx].tarihKemaskini=now.toISOString();
   saveLocal();
 
-  // Tunjuk rekod terus — jangan tunggu server
-  renderRekodToday();
-  if(rekod.kemaskini||rekod.naikPeringkat) rkOnMurid();
-  showT('💾 Menyimpan rekod...','',1500);
-
-  // Reset form (kekal murid yang sama)
+  // Reset form
   document.getElementById('rkDr').value='';
   document.getElementById('rkKe').value='';
   document.getElementById('rkJH').textContent='';
   const jb=document.getElementById('rkJB');if(jb)jb.style.display='none';
   const wb=document.getElementById('rkWB');if(wb)wb.style.display='none';
-
-  // Simpan murid terakhir
   lastMuridId=muridId;
   localStorage.setItem('skdk_last_murid',muridId);
 
-  // ── HANTAR KE SERVER (background) ──
-  try{
-    const r=await api('addRekod',{rekod});
-    if(r.ok && !r.offline){
-      const ri=DB.rekod.findIndex(x=>x.id===localId);
-      if(ri>=0) DB.rekod[ri].id=r.id||localId;
-      saveLocal();
-      // Tunjuk konfirmasi rekod masuk Sheets
-      showT('✅ Rekod disimpan & dihantar ke Sheets!','ok',2500);
-    } else {
-      if(!r.queued) queueSync('addRekod',{rekod});
-      showT('⚠️ Disimpan offline — tap Sync Data bila ada internet','warn',4000);
-    }
-  }catch(e){
-    queueSync('addRekod',{rekod});
-    showT('⚠️ Disimpan offline — tap Sync Data bila ada internet','warn',4000);
-  }
-
+  showT('✅ Rekod disimpan!'+(rekod.naikPeringkat?' 🎉 Naik peringkat!':''),'ok',3000);
+  renderRekodToday();
+  if(rekod.kemaskini||rekod.naikPeringkat) rkOnMurid();
   renderDash();updateAlertBadge();
 }
 
