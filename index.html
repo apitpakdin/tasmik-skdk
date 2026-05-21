@@ -1178,8 +1178,8 @@ const BLF=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','Septem
 const DARJAH=['Darjah 1','Darjah 2','Darjah 3','Darjah 4','Darjah 5','Darjah 6'];
 
 // URL Backend — dikemaskini secara automatik
-const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbw8QQ9CXK8IhUtZ1yhVS409-4uIqO-rfKHey4ne3SNxjBXqbSPz-qkMFaoYIg3P4RTn-Q/exec';
-const APP_VERSION = '2.1'; // Naikkan nombor ini setiap kali update
+const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbwVbWoDWs6UOL7HAGL73JYIzpA2oGwn3laGKCF5KGiQPFQmeXoz6wwPVJtkbG7cfBpO5g/exec';
+const APP_VERSION = '2.2';
 let API_URL = DEFAULT_API_URL;
 let IS_OFFLINE = false;
 let DB = {guru:[],murid:[],rekod:[],khatam:[]};
@@ -2080,11 +2080,18 @@ async function rkSimpan(){
     masa:now.toTimeString().slice(0,5)
   };
 
-  // ── IKUT CARA KHATAM — hantar ke server terus, tunggu response ──
+  // ── HANTAR KE SERVER — ikut cara khatam ──
+  // Pastikan tidak dalam mod offline sebelum hantar
+  if(IS_OFFLINE){
+    IS_OFFLINE=false;
+    localStorage.removeItem('skdk_offline');
+    updateSyncStatus(true);
+  }
+
   showT('⏳ Menyimpan rekod...','',3000);
   const r = await api('addRekod',{rekod});
   if(!r.ok){
-    showT('❌ Gagal simpan: '+(r.msg||'Cuba sekali lagi'),'err',4000);
+    showT('❌ '+(r.msg||'Gagal — cuba sekali lagi'),'err',5000);
     return;
   }
 
