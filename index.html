@@ -1350,7 +1350,7 @@ let KBS_CUR_MURID=null;
 
 // URL Backend — dikemaskini secara automatik
 const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbwVbWoDWs6UOL7HAGL73JYIzpA2oGwn3laGKCF5KGiQPFQmeXoz6wwPVJtkbG7cfBpO5g/exec';
-const APP_VERSION = '2.2';
+const APP_VERSION = '2.3';
 let API_URL = DEFAULT_API_URL;
 let IS_OFFLINE = false;
 let DB = {guru:[],murid:[],rekod:[],khatam:[],kbs:[]};
@@ -1364,18 +1364,19 @@ let pendingSync=[]; // offline queue
    CONFIG / BACKEND CONNECT
 ═══════════════════════════════════════ */
 function loadConfig(){
-  // Semak versi — kalau versi berbeza, paksa guna URL baru
+  // Semak versi — kalau versi berbeza, paksa guna URL baru (betul-betul, bukan
+  // sekadar padam bendera offline). Ini penting bila deployment URL Apps Script
+  // bertukar (contoh: deployment baharu dicipta) — tanpa ini, peranti yang
+  // pernah simpan URL LAMA akan terperangkap dengan URL usang selama-lamanya
+  // walaupun kod app dikemaskini.
   const savedVersion = localStorage.getItem('skdk_version');
   if (savedVersion !== APP_VERSION) {
-    // Versi baru — paksa kemaskini URL dan clear cache lama
     localStorage.setItem('skdk_version', APP_VERSION);
     localStorage.removeItem('skdk_offline');
-    console.log('Versi baru '+APP_VERSION+' — URL dikemaskini');
+    localStorage.setItem('skdk_api_url', DEFAULT_API_URL);
+    console.log('Versi baru '+APP_VERSION+' — URL dipaksa kemaskini ke '+DEFAULT_API_URL);
   }
 
-  // Guna URL yang pernah disimpan. Jika belum ada, baru guna URL default.
-  // Jangan paksa DEFAULT_API_URL setiap kali app dibuka kerana URL deployment
-  // Apps Script boleh berubah selepas cikgu deploy semula.
   const savedUrl = localStorage.getItem('skdk_api_url');
   API_URL = savedUrl || DEFAULT_API_URL;
   if(!savedUrl) localStorage.setItem('skdk_api_url', DEFAULT_API_URL);
