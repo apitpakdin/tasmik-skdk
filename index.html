@@ -2957,8 +2957,14 @@ function kbsMuridProgress(muridId,darjah){
   return{total,m};
 }
 
+// KBS sengaja TIDAK guna getMyMurid() — semua guru boleh pilih & isi mana-mana kelas
+// khusus untuk Bestari Solat, tidak terhad kepada kelas guru itu sendiri sahaja.
+function kbsAllMurid(){
+  return DB.murid.filter(m=>m.status==='Aktif');
+}
+
 function kbsPopulateSel(){
-  const murid=getMyMurid();
+  const murid=kbsAllMurid();
   const d=document.getElementById('kbsD')?.value||'';
   const klss=[...new Set(murid.filter(m=>!d||m.darjah===d).map(m=>m.kelas))].sort();
   const ks=document.getElementById('kbsK');
@@ -2970,7 +2976,7 @@ function kbsFiltMurid(){
   const d=document.getElementById('kbsD')?.value||'';
   const k=document.getElementById('kbsK')?.value||'';
   const cari=(document.getElementById('kbsCari')?.value||'').toLowerCase().trim();
-  let list=getMyMurid();
+  let list=kbsAllMurid();
   if(d) list=list.filter(m=>m.darjah===d);
   if(k) list=list.filter(m=>m.kelas===k);
   if(cari) list=list.filter(m=>m.nama.toLowerCase().includes(cari));
