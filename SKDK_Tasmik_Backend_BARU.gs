@@ -23,6 +23,7 @@ const SH = {
   MURID  : 'Murid',
   REKOD  : 'Rekod',
   KHATAM : 'Khatam',
+  KBS    : 'KBS',
   LOG    : 'Log',
   CONFIG : 'Config',
 };
@@ -246,6 +247,7 @@ function doPost(e) {
       case 'dedupMurid' : result = apiDedupMurid();     break;
       case 'changePass' : result = apiChangePass(body); break;
       case 'tukarTahun' : result = apiTukarTahun(body); break;
+      case 'setKBS'     : result = apiSetKBS(body);     break;
       default: result = {ok:false, msg:'Action tidak dikenali: '+action};
     }
     return _jsonResp(result);
@@ -343,6 +345,16 @@ function apiGetAll(body) {
        'tarikh','guru','catatan']
     );
 
+    // Baca KBS secara berasingan — kalau sheet KBS belum dicipta (setupSheets
+    // belum dijalankan semula), jangan biar seluruh getAll gagal
+    let kbs = [];
+    try {
+      kbs = _sheetToJson(SH.KBS,
+        ['id','muridId','muridNama','darjah','kelas','tahap','tahun',
+         'sectionKey','itemId','itemTeks','status','guru','tarikh']
+      );
+    } catch(eKbs) {}
+
     const guru = _sheetToJson(SH.GURU,
       ['id','nama','email','password','peranan','darjah','kelas','status']
     ).filter(g => g.status !== 'Tamat')
@@ -360,11 +372,49 @@ function apiGetAll(body) {
       }
     });
 
-    return {ok:true, data:{murid, rekod, khatam, guru,
+    return {ok:true, data:{murid, rekod, khatam, kbs, guru,
       config:{namaSekolah:SEKOLAH, alertDays:7}
     }};
   } catch(e) {
     return {ok:false, msg:'getAll error: '+e.message};
+  }
+}
+
+// ================================================================
+//  KEM BESTARI SOLAT (KBS)
+// ================================================================
+function apiSetKBS(body) {
+  const {kbs} = body;
+  if (!kbs || !kbs.muridId || !kbs.itemId) {
+    return {ok:false, msg:'Data KBS tidak lengkap'};
+  }
+
+  try {
+    const sheet = _getSheet(SH.KBS);
+    const data = sheet.getDataRange().getValues();
+
+    // Cari baris sedia ada — padan muridId + tahun + itemId (upsert)
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][1] === kbs.muridId &&
+          Number(data[i][6]) === Number(kbs.tahun) &&
+          data[i][8] === kbs.itemId) {
+        sheet.getRange(i+1, 11).setValue(kbs.status || '');
+        sheet.getRange(i+1, 12).setValue(kbs.guru || '');
+        sheet.getRange(i+1, 13).setValue(kbs.tarikh || new Date().toISOString());
+        return {ok:true, id:data[i][0]};
+      }
+    }
+
+    const id = kbs.id || _genId('KBS');
+    sheet.appendRow([
+      id, kbs.muridId, kbs.muridNama || '', kbs.darjah || '', kbs.kelas || '',
+      kbs.tahap || '', kbs.tahun || new Date().getFullYear(),
+      kbs.sectionKey || '', kbs.itemId, kbs.itemTeks || '',
+      kbs.status || '', kbs.guru || '', kbs.tarikh || new Date().toISOString()
+    ]);
+    return {ok:true, id};
+  } catch(e) {
+    return {ok:false, msg:'Gagal simpan KBS: '+e.message};
   }
 }
 
@@ -810,6 +860,7 @@ function setupSheets() {
   buat(SH.MURID,  ['ID','Nama','No. Murid','Darjah','Kelas','Guru ID','Jenis Iqra','Peringkat','Iqra Label','Muka Surat','Bil Khatam','Status','Tarikh Daftar','Tarikh Kemaskini']);
   buat(SH.REKOD,  ['ID','Tarikh','Hari','Masa','Murid ID','Nama Murid','Darjah','Kelas','Guru ID','Nama Guru','Jenis','Peringkat','Iqra Label','M/S Dari','M/S Ke','Jumlah','Kualiti','Catatan']);
   buat(SH.KHATAM, ['ID','Murid ID','Nama Murid','Darjah','Kelas','Bilangan','Tahun','Tarikh','Guru','Catatan']);
+  buat(SH.KBS,    ['ID','Murid ID','Nama Murid','Darjah','Kelas','Tahap','Tahun','Section','Item ID','Item Teks','Status','Guru','Tarikh']);
   buat(SH.LOG,    ['Tarikh','Tindakan','Oleh','Detail']);
   buat(SH.CONFIG, ['Kunci','Nilai']);
 
