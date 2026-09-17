@@ -1745,6 +1745,12 @@ async function syncData(){
   document.getElementById('syncText').textContent='Syncing...';
   document.getElementById('syncBanner').classList.add('show');
 
+  // PENTING: bersihkan bendera offline SEBELUM cuba — kalau tidak, api() terus
+  // guna data tempatan sahaja (handleOffline) tanpa cuba sambungan sebenar
+  // langsung, dan Sync Data akan sentiasa lapor "berjaya" walaupun tiada
+  // percubaan sambungan sebenar berlaku.
+  IS_OFFLINE=false;
+
   try{
     // Langkah 1: Hantar rekod dalam pending queue ke server
     let rekodHantar=0;
@@ -1762,6 +1768,13 @@ async function syncData(){
 
     // Langkah 2: Ambil data terkini dari server
     const fresh=await api('getAll',{userId:CU?.id,peranan:CU?.peranan});
+
+    // api() sendiri set IS_OFFLINE=true bila fetch sebenar gagal (CORS/network) —
+    // kalau itu berlaku, jangan lapor "berjaya", biar catch di bawah uruskan
+    if(IS_OFFLINE){
+      throw new Error('Tidak dapat sambung ke Google Sheets. Semak internet & deployment.');
+    }
+
     if(fresh.ok && fresh.data){
       // Rekod — GABUNG server + tempatan, jangan padam tempatan
       if(fresh.data.rekod){
@@ -1793,6 +1806,9 @@ async function syncData(){
     renderDash();renderAlert();renderRekodToday();renderKhatamHist();
 
   }catch(e){
+    IS_OFFLINE=true;
+    localStorage.setItem('skdk_offline','1');
+    document.getElementById('syncBanner').classList.add('show');
     showT('❌ Sync gagal: '+e.message,'err');
     updateSyncStatus(false);
   }
