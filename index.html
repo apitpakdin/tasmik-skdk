@@ -220,6 +220,11 @@ html,body{height:100%;font-family:var(--font);background:var(--gray0);}
 .cb2.on{background:var(--g2);border-color:var(--g2);color:white;}
 .cl{font-size:13px;color:var(--gray6);}
 
+/* ── KBS TICK BUTTON ── */
+.kbs-btn{border:1.5px solid var(--gray2);background:white;color:var(--gray5);font-size:12px;font-weight:700;padding:6px 13px;border-radius:var(--r-sm);cursor:pointer;transition:all .15s;}
+.kbs-btn.kbs-m.on{background:var(--g2);border-color:var(--g2);color:white;}
+.kbs-btn.kbs-bm.on{background:var(--red);border-color:var(--red);color:white;}
+
 /* ── INFO / WARN BOXES ── */
 .info-b{background:var(--g7);border:1px solid var(--g5);border-radius:var(--r-sm);padding:10px 12px;font-size:12px;color:var(--g1);margin-top:8px;}
 .warn-b{background:var(--orange2);border:1px solid #fdba74;border-radius:var(--r-sm);padding:8px 12px;font-size:12px;color:var(--orange);margin-top:6px;display:none;}
@@ -366,6 +371,7 @@ html,body{height:100%;font-family:var(--font);background:var(--gray0);}
 
   /* Senarai murid lebih pendek pada mobile */
   #rkMuridList{max-height:140px!important;}
+  #kbsMuridList{max-height:280px!important;}
 
   /* M/S Dari/Ke — kekalkan 2 kolum (penting untuk UX) */
   #sc-rekod div[style*="grid-template-columns:1fr 1fr;gap:8px"]{
@@ -506,6 +512,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
       <div class="ni active" onclick="navTo('dash',this)"><span class="ico">🏠</span><span class="lbl">Dashboard</span></div>
       <div class="ni" onclick="navTo('rekod',this)"><span class="ico">📋</span><span class="lbl">Rekod Bacaan</span></div>
       <div class="ni" onclick="navTo('khatam',this)"><span class="ico">🏆</span><span class="lbl">Rekod Khatam</span></div>
+      <div class="ni" onclick="navTo('kbs',this)"><span class="ico">🕌</span><span class="lbl">Bestari Solat</span></div>
       <div class="sb-sec">Analisis</div>
       <div class="ni" onclick="navTo('laporan',this)"><span class="ico">📊</span><span class="lbl">Laporan</span></div>
       <div class="ni" onclick="navTo('alert',this)"><span class="ico">🔔</span><span class="lbl">Amaran <span class="badge-r" id="alertBadge" style="display:none">0</span></span></div>
@@ -746,6 +753,32 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
         </div>
       </div>
 
+      <!-- KEM BESTARI SOLAT -->
+      <div class="screen" id="sc-kbs">
+        <div class="card" style="margin-bottom:14px">
+          <div class="ch"><h3>🕌 Kem Bestari Solat (KBS)</h3></div>
+          <div class="cb">
+            <div style="background:var(--g7);border-radius:var(--r-md);padding:10px 14px;font-size:12px;color:var(--g1);margin-bottom:14px;line-height:1.6">
+              💡 Pilih murid untuk tandakan senarai semak Wuduk, Solat (Perlakuan & Bacaan), mengikut Tahap 1 (Darjah 1-3) atau Tahap 2 (Darjah 4-6). Rekod disimpan mengikut tahun semasa dan kekal dibawa ke tahun hadapan — sama seperti Rekod Bacaan.
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+              <select class="fc" id="kbsD" onchange="kbsPopulateSel()" style="font-size:12px;padding:7px 10px">
+                <option value="">Semua Darjah</option>
+                <option>Darjah 1</option><option>Darjah 2</option><option>Darjah 3</option>
+                <option>Darjah 4</option><option>Darjah 5</option><option>Darjah 6</option>
+              </select>
+              <select class="fc" id="kbsK" onchange="kbsFiltMurid()" style="font-size:12px;padding:7px 10px">
+                <option value="">Semua Kelas</option>
+              </select>
+            </div>
+            <input class="fc" id="kbsCari" placeholder="🔍 Cari nama..." oninput="kbsFiltMurid()" style="margin-bottom:10px;font-size:13px">
+            <div id="kbsMuridList" style="max-height:520px;overflow-y:auto;border:1.5px solid var(--gray2);border-radius:var(--r-md);background:white">
+              <div style="padding:12px;text-align:center;color:var(--gray4);font-size:12px">Memuatkan senarai murid...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- LAPORAN -->
       <div class="screen" id="sc-laporan">
         <div style="display:flex;gap:8px;border-bottom:2px solid var(--gray2);margin-bottom:16px;overflow-x:auto;scrollbar-width:none">
@@ -928,6 +961,7 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
             <div class="eo" onclick="doExport('rekod')"><div class="eoi">📊</div><div class="eot"><h4>Rekod Bacaan (CSV/Excel)</h4><p>Semua rekod tasmik dengan tarikh, guru, kualiti</p></div></div>
             <div class="eo" onclick="doExport('murid')"><div class="eoi">👥</div><div class="eot"><h4>Senarai Murid (CSV/Excel)</h4><p>Profil murid, kemajuan dan bilangan khatam</p></div></div>
             <div class="eo" onclick="doExport('khatam')"><div class="eoi">🏆</div><div class="eot"><h4>Rekod Khatam (CSV/Excel)</h4><p>Sejarah khatam Al-Quran mengikut tahun</p></div></div>
+            <div class="eo" onclick="doExport('kbs')"><div class="eoi">🕌</div><div class="eot"><h4>Kem Bestari Solat (CSV/Excel)</h4><p>Senarai semak M/BM Wuduk & Solat mengikut tahun</p></div></div>
             <div class="eo" onclick="doExport('laporan')"><div class="eoi">📈</div><div class="eot"><h4>Laporan Analisis (CSV/Excel)</h4><p>Ringkasan per darjah dan per guru</p></div></div>
             <div class="eo" onclick="doBackupJSON()"><div class="eoi">💾</div><div class="eot"><h4>Backup Penuh (JSON)</h4><p>Backup semua data untuk keselamatan</p></div></div>
           </div>
@@ -1155,6 +1189,28 @@ select.fc{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.o
   </div>
 </div>
 
+<!-- MODAL KEM BESTARI SOLAT -->
+<div class="mo" id="moKBS">
+  <div class="mb2">
+    <div class="mh">
+      <div>
+        <h2 id="kbsModalNama">🕌 Kem Bestari Solat</h2>
+        <div style="font-size:11px;color:var(--gray5);margin-top:2px" id="kbsModalInfo">—</div>
+      </div>
+      <button class="mcl" onclick="closeM('moKBS')">✕</button>
+    </div>
+    <div class="mc2">
+      <div class="pw" style="margin-bottom:4px"><div class="pf" id="kbsProgressFill" style="width:0%"></div></div>
+      <div class="pl" id="kbsProgressText" style="margin-bottom:6px">0 / 0 item dikuasai (0%)</div>
+      <div style="font-size:11px;color:var(--gray4);margin-bottom:4px">Tekan <b>M</b> = Menguasai, <b>BM</b> = Belum Menguasai. Tekan sekali lagi untuk buang tanda.</div>
+      <div id="kbsChecklistBody"></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-s" onclick="closeM('moKBS')">Tutup</button>
+    </div>
+  </div>
+</div>
+
 <style>
 .tab-b{padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--gray5);border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;}
 .tab-b.active{color:var(--g1);border-bottom-color:var(--g1);}
@@ -1177,12 +1233,127 @@ const BL=['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogs','Sep','Okt','Nov','Dis
 const BLF=['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
 const DARJAH=['Darjah 1','Darjah 2','Darjah 3','Darjah 4','Darjah 5','Darjah 6'];
 
+// ── KEM BESTARI SOLAT (KBS) — senarai semak Tahap 1 (Darjah 1-3) & Tahap 2 (Darjah 4-6) ──
+const KBS_WUDUK=[
+  {id:'w1',teks:'Bacaan basmalah',j:'Sunat'},
+  {id:'w2',teks:'Membasuh kedua-dua tangan',j:'Sunat'},
+  {id:'w3',teks:'Berkumur-kumur',j:'Sunat'},
+  {id:'w4',teks:'Memasukkan air ke dalam hidung',j:'Sunat'},
+  {id:'w5',teks:'Niat wuduk',j:'Rukun'},
+  {id:'w6',teks:'Membasuh muka',j:'Rukun'},
+  {id:'w7',teks:'Membasuh kedua-dua tangan hingga ke siku',j:'Rukun'},
+  {id:'w8',teks:'Menyapu air ke sebahagian kepala',j:'Rukun'},
+  {id:'w9',teks:'Menyapu air pada kedua-dua belah telinga',j:'Sunat'},
+  {id:'w10',teks:'Membasuh kedua-dua belah kaki hingga ke buku lali',j:'Rukun'},
+  {id:'w11',teks:'Tertib',j:'Rukun'},
+  {id:'w12',teks:'Doa selepas wuduk',j:'Sunat'},
+];
+const KBS_PERLAKUAN_T1=[
+  {id:'p1',teks:'Berdiri tegak',j:'Rukun'},
+  {id:'p2',teks:'Kedudukan tangan semasa takbiratulihram',j:'Sunat'},
+  {id:'p3',teks:'Kedudukan tangan selepas takbiratulihram',j:'Sunat'},
+  {id:'p4',teks:'Rukuk',j:'Rukun'},
+  {id:'p5',teks:'Iktidal',j:'Rukun'},
+  {id:'p6',teks:'Sujud',j:'Rukun'},
+  {id:'p7',teks:'Duduk antara dua sujud',j:'Rukun'},
+  {id:'p8',teks:'Duduk semasa tahiyat awal',j:'Sunat'},
+  {id:'p9',teks:'Duduk semasa tahiyat akhir',j:'Rukun'},
+  {id:'p10',teks:'Berpaling ketika salam',j:'Sunat'},
+  {id:'p11',teks:'Perlakuan qunut',j:'Sunat'},
+  {id:'p12',teks:'Tamakninah',j:'Rukun'},
+  {id:'p13',teks:'Kedudukan imam dan makmum',j:''},
+];
+const KBS_PERLAKUAN_T2=[
+  ...KBS_PERLAKUAN_T1.slice(0,12),
+  {id:'p12b',teks:'Perlakuan sujud sahwi',j:'Sunat'},
+  {id:'p13',teks:'Kedudukan imam dan makmum',j:''},
+];
+const KBS_BACAAN_T1=[
+  {id:'b1',teks:'Lafaz niat solat Subuh',j:'Rukun'},
+  {id:'b2',teks:'Lafaz niat solat Zohor',j:'Rukun'},
+  {id:'b3',teks:'Lafaz niat solat Asar',j:'Rukun'},
+  {id:'b4',teks:'Lafaz niat solat Maghrib',j:'Rukun'},
+  {id:'b5',teks:'Lafaz niat solat Isyak',j:'Rukun'},
+  {id:'b6',teks:'Takbiratulihram',j:'Rukun'},
+  {id:'b7',teks:'Doa Iftitah',j:'Sunat'},
+  {id:'b8',teks:'Surah al-Fatihah',j:'Rukun'},
+  {id:'b9',teks:'Surah al-Ikhlas (Tahun 1)',j:'Sunat'},
+  {id:'b10',teks:'Surah an-Nas (Tahun 2)',j:'Sunat'},
+  {id:'b11',teks:'Surah al-Falaq (Tahun 2)',j:'Sunat'},
+  {id:'b12',teks:'Surah al-Masad (Tahun 3)',j:'Sunat'},
+  {id:'b13',teks:'Surah an-Nasr (Tahun 3)',j:'Sunat'},
+  {id:'b14',teks:'Surah al-Kafirun (Tahun 3)',j:'Sunat'},
+  {id:'b15',teks:'Surah al-Kauthar (Tahun 3)',j:'Sunat'},
+  {id:'b16',teks:'Bacaan Rukuk',j:''},
+  {id:'b17',teks:'Bacaan Iktidal',j:''},
+  {id:'b18',teks:'Bacaan Sujud',j:''},
+  {id:'b19',teks:'Bacaan Duduk Antara Dua Sujud',j:''},
+  {id:'b20',teks:'Bacaan Tahiyat Awal',j:''},
+  {id:'b21',teks:'Bacaan Tahiyat Akhir',j:'Rukun'},
+  {id:'b22',teks:'Selawat Ibrahimiyah',j:''},
+  {id:'b23',teks:'Salam Pertama',j:''},
+  {id:'b24',teks:'Salam Kedua',j:'Sunat'},
+  {id:'b25',teks:'Doa Qunut',j:'Sunat'},
+];
+const KBS_BACAAN_T2=[
+  ...KBS_BACAAN_T1.slice(0,8),
+  {id:'b9b',teks:"Surah al-Qari'ah (Tahun 4)",j:'Sunat'},
+  {id:'b10b',teks:"Surah al-'Adiyat (Tahun 4)",j:'Sunat'},
+  {id:'b11b',teks:'Surah al-Zalzalah (Tahun 4)',j:'Sunat'},
+  {id:'b12b',teks:'Surah al-Baiyinah (Tahun 5)',j:'Sunat'},
+  {id:'b13b',teks:'Surah al-Qadr (Tahun 5)',j:'Sunat'},
+  {id:'b14b',teks:"Surah al-'Alaq (Tahun 5)",j:'Sunat'},
+  {id:'b15b',teks:'Surah at-Tin (Tahun 6)',j:'Sunat'},
+  {id:'b16b',teks:'Surah Asy-Syarh (Tahun 6)',j:'Sunat'},
+  {id:'b17b',teks:'Surah Ad-Dhuha (Tahun 6)',j:'Sunat'},
+  {id:'b18b',teks:'Bacaan Rukuk',j:''},
+  {id:'b19b',teks:'Bacaan Iktidal',j:''},
+  {id:'b20b',teks:'Bacaan Sujud',j:''},
+  {id:'b21b',teks:'Bacaan Duduk Antara Dua Sujud',j:''},
+  {id:'b22b',teks:'Bacaan Tahiyat Awal',j:''},
+  {id:'b23b',teks:'Bacaan Tahiyat Akhir',j:'Rukun'},
+  {id:'b24b',teks:'Selawat Ibrahimiyah',j:''},
+  {id:'b25b',teks:'Salam Pertama',j:''},
+  {id:'b26b',teks:'Salam Kedua',j:'Sunat'},
+  {id:'b27b',teks:'Doa Qunut',j:'Sunat'},
+  {id:'b28b',teks:'Bacaan Sujud Sahwi',j:''},
+];
+const KBS_TAMBAHAN_T2=[
+  {id:'t1',teks:'Syarat-syarat wajib solat',j:''},
+  {id:'t2',teks:'Syarat-syarat sah solat',j:''},
+  {id:'t3',teks:'Lafaz azan dan jawab azan',j:''},
+  {id:'t4',teks:'Lafaz iqamah dan jawab iqamah',j:''},
+  {id:'t5',teks:'Doa selepas azan dan iqamah',j:''},
+  {id:'t6',teks:'Muafik dan Masbuk',j:''},
+  {id:'t7',teks:'Tayammum',j:''},
+  {id:'t8',teks:'Pengertian Surah al-Fatihah',j:''},
+  {id:'t9',teks:'Solat Jenazah — Kedudukan imam dan makmum',j:''},
+  {id:'t10',teks:'Solat Jenazah — Lafaz niat',j:''},
+  {id:'t11',teks:'Solat Jenazah — Takbir pertama (al-Fatihah)',j:''},
+  {id:'t12',teks:'Solat Jenazah — Takbir kedua (selawat)',j:''},
+  {id:'t13',teks:'Solat Jenazah — Takbir ketiga (doa)',j:''},
+  {id:'t14',teks:'Solat Jenazah — Takbir keempat (doa dan salam)',j:''},
+];
+const KBS_ITEM_MAP={};
+[...KBS_WUDUK,...KBS_PERLAKUAN_T1,...KBS_PERLAKUAN_T2,...KBS_BACAAN_T1,...KBS_BACAAN_T2,...KBS_TAMBAHAN_T2].forEach(it=>{KBS_ITEM_MAP[it.id]=it;});
+function kbsTahap(darjah){const d=parseInt((darjah||'').replace('Darjah ',''))||1;return d<=3?1:2;}
+function kbsGetSections(tahap){
+  const sec=[
+    {key:'wuduk',label:'🕋 Amali Wuduk',items:KBS_WUDUK},
+    {key:'perlakuan',label:'🧎 Amali Solat (Perlakuan)',items:tahap===1?KBS_PERLAKUAN_T1:KBS_PERLAKUAN_T2},
+    {key:'bacaan',label:'📖 Amali Solat (Bacaan)',items:tahap===1?KBS_BACAAN_T1:KBS_BACAAN_T2},
+  ];
+  if(tahap===2) sec.push({key:'tambahan',label:'➕ Amali Solat (Tambahan)',items:KBS_TAMBAHAN_T2});
+  return sec;
+}
+let KBS_CUR_MURID=null;
+
 // URL Backend — dikemaskini secara automatik
 const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbwVbWoDWs6UOL7HAGL73JYIzpA2oGwn3laGKCF5KGiQPFQmeXoz6wwPVJtkbG7cfBpO5g/exec';
 const APP_VERSION = '2.2';
 let API_URL = DEFAULT_API_URL;
 let IS_OFFLINE = false;
-let DB = {guru:[],murid:[],rekod:[],khatam:[]};
+let DB = {guru:[],murid:[],rekod:[],khatam:[],kbs:[]};
 let CU = null; // current user
 let rkJenisVal='Iqra Baru', rkQVal='Cemerlang ⭐⭐⭐';
 let editMuridId=null, editGuruId=null;
@@ -1221,6 +1392,7 @@ function loadConfig(){
   if(!DB.rekod) DB.rekod=[];
   if(!DB.khatam) DB.khatam=[];
   if(!DB.kumpulan) DB.kumpulan=[];
+  if(!DB.kbs) DB.kbs=[];
 
   const pending=localStorage.getItem('skdk_pending');
   if(pending) try{pendingSync=JSON.parse(pending);}catch(e){}
@@ -1685,7 +1857,7 @@ function initApp(){
 /* ═══════════════════════════════════════
    NAVIGATION
 ═══════════════════════════════════════ */
-const PM={dash:'Dashboard',rekod:'Rekod Bacaan',khatam:'Rekod Khatam',laporan:'Laporan & Analisis',alert:'Amaran Murid',murid:'Pengurusan Murid',guru:'Pengurusan Guru',tahun:'Tukar Tahun',export:'Export Data',tetapan:'Tetapan'};
+const PM={dash:'Dashboard',rekod:'Rekod Bacaan',khatam:'Rekod Khatam',kbs:'Kem Bestari Solat',laporan:'Laporan & Analisis',alert:'Amaran Murid',murid:'Pengurusan Murid',guru:'Pengurusan Guru',tahun:'Tukar Tahun',export:'Export Data',tetapan:'Tetapan'};
 
 function navTo(s,el){
   if(s==='guru'){
@@ -1709,6 +1881,7 @@ function navTo(s,el){
   if(s==='laporan')renderLap();
   if(s==='alert')renderAlert();
   if(s==='khatam'){populateSels();renderKhatamHist();}
+  if(s==='kbs'){kbsPopulateSel();}
   if(s==='murid'){renderMurid();populateSels();}
   if(s==='tahun')renderTahunPage();
   if(s==='tetapan')updateStatsTetapan();
@@ -2769,6 +2942,142 @@ function openAddGuruKelas(darjah,kelas){
 }
 
 /* ═══════════════════════════════════════
+   KEM BESTARI SOLAT (KBS)
+═══════════════════════════════════════ */
+function kbsMuridProgress(muridId,darjah){
+  const tahap=kbsTahap(darjah);
+  const tahun=new Date().getFullYear();
+  const sections=kbsGetSections(tahap);
+  let total=0,m=0;
+  sections.forEach(sec=>sec.items.forEach(it=>{
+    total++;
+    const rec=DB.kbs.find(r=>r.muridId===muridId&&r.tahun===tahun&&r.itemId===it.id);
+    if(rec&&rec.status==='M') m++;
+  }));
+  return{total,m};
+}
+
+function kbsPopulateSel(){
+  const murid=getMyMurid();
+  const d=document.getElementById('kbsD')?.value||'';
+  const klss=[...new Set(murid.filter(m=>!d||m.darjah===d).map(m=>m.kelas))].sort();
+  const ks=document.getElementById('kbsK');
+  if(ks){const kv=ks.value;ks.innerHTML='<option value="">Semua Kelas</option>'+klss.map(k=>`<option>${k}</option>`).join('');if(kv)ks.value=kv;}
+  kbsFiltMurid();
+}
+
+function kbsFiltMurid(){
+  const d=document.getElementById('kbsD')?.value||'';
+  const k=document.getElementById('kbsK')?.value||'';
+  const cari=(document.getElementById('kbsCari')?.value||'').toLowerCase().trim();
+  let list=getMyMurid();
+  if(d) list=list.filter(m=>m.darjah===d);
+  if(k) list=list.filter(m=>m.kelas===k);
+  if(cari) list=list.filter(m=>m.nama.toLowerCase().includes(cari));
+  renderKBSMuridList(list);
+}
+
+function renderKBSMuridList(list){
+  const el=document.getElementById('kbsMuridList');
+  if(!el)return;
+  if(!list||!list.length){
+    el.innerHTML='<div style="padding:20px;text-align:center;color:var(--gray4);font-size:13px">Tiada murid dijumpai</div>';
+    return;
+  }
+  const sorted=[...list].sort((a,b)=>a.nama.localeCompare(b.nama));
+  el.innerHTML=sorted.map(m=>{
+    const inisial=m.nama.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+    const tahap=kbsTahap(m.darjah);
+    const{total,m:done}=kbsMuridProgress(m.id,m.darjah);
+    const pct=total?Math.round(done/total*100):0;
+    const badgeColor=pct===100?'background:#dcfce7;color:#14532d':pct>0?'background:#fff3cd;color:#856404':'background:var(--gray1);color:var(--gray5)';
+    return`<div class="mk-item" id="kbsmki_${m.id}" onclick="kbsOpenMurid('${m.id}')">
+      <div class="mk-av">${inisial}</div>
+      <div class="mk-info">
+        <div class="mk-nama">${esc(m.nama)}</div>
+        <div class="mk-sub">${m.darjah} ${esc(m.kelas)} · Tahap ${tahap}</div>
+      </div>
+      <span class="mk-badge" style="${badgeColor}">${done}/${total}</span>
+    </div>`;
+  }).join('');
+}
+
+function kbsOpenMurid(muridId){
+  const m=DB.murid.find(x=>x.id===muridId);
+  if(!m)return;
+  KBS_CUR_MURID=muridId;
+  document.getElementById('kbsModalNama').textContent='🕌 '+m.nama;
+  document.getElementById('kbsModalInfo').textContent=m.darjah+' '+m.kelas+' · Tahap '+kbsTahap(m.darjah)+' · Tahun '+new Date().getFullYear();
+  kbsRenderChecklist();
+  openM('moKBS');
+}
+
+function kbsRenderChecklist(){
+  const m=DB.murid.find(x=>x.id===KBS_CUR_MURID);
+  if(!m)return;
+  const tahap=kbsTahap(m.darjah);
+  const tahun=new Date().getFullYear();
+  const sections=kbsGetSections(tahap);
+  let totalAll=0,doneAll=0,html='';
+  sections.forEach(sec=>{
+    html+=`<div style="font-size:12px;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px;padding-bottom:4px;border-bottom:1.5px solid var(--gray2)">${sec.label}</div>`;
+    sec.items.forEach(it=>{
+      totalAll++;
+      const rec=DB.kbs.find(r=>r.muridId===KBS_CUR_MURID&&r.tahun===tahun&&r.itemId===it.id);
+      const status=rec?rec.status:'';
+      if(status==='M') doneAll++;
+      html+=`<div class="kbs-row" data-item="${it.id}" data-sec="${sec.key}" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray1)">
+        <div style="flex:1;font-size:13px;color:var(--gray7)">${esc(it.teks)}${it.j?` <span class="bdg ${it.j==='Rukun'?'bb':'bpu'}" style="font-size:9px;padding:2px 6px">${it.j}</span>`:''}</div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <button type="button" class="kbs-btn kbs-m${status==='M'?' on':''}" data-status="M">M</button>
+          <button type="button" class="kbs-btn kbs-bm${status==='BM'?' on':''}" data-status="BM">BM</button>
+        </div>
+      </div>`;
+    });
+  });
+  document.getElementById('kbsChecklistBody').innerHTML=html;
+  const pct=totalAll?Math.round(doneAll/totalAll*100):0;
+  document.getElementById('kbsProgressText').textContent=doneAll+' / '+totalAll+' item dikuasai ('+pct+'%)';
+  document.getElementById('kbsProgressFill').style.width=pct+'%';
+}
+
+function kbsToggleClick(e){
+  const btn=e.target.closest('.kbs-btn');
+  if(!btn)return;
+  const row=btn.closest('.kbs-row');
+  if(!row)return;
+  kbsSetStatus(row.dataset.item,row.dataset.sec,btn.dataset.status);
+}
+
+function kbsSetStatus(itemId,sectionKey,status){
+  const m=DB.murid.find(x=>x.id===KBS_CUR_MURID);
+  if(!m)return;
+  const it=KBS_ITEM_MAP[itemId];
+  const tahap=kbsTahap(m.darjah);
+  const tahun=new Date().getFullYear();
+  const rec=DB.kbs.find(r=>r.muridId===KBS_CUR_MURID&&r.tahun===tahun&&r.itemId===itemId);
+  if(rec){
+    if(rec.status===status){
+      DB.kbs=DB.kbs.filter(r=>r!==rec);
+    }else{
+      rec.status=status;
+      rec.tarikh=new Date().toISOString();
+      rec.guru=CU?.nama||'Guru';
+    }
+  }else{
+    DB.kbs.push({
+      id:genId('KBS'),
+      muridId:KBS_CUR_MURID,muridNama:m.nama,darjah:m.darjah,kelas:m.kelas,
+      tahap,tahun,sectionKey,itemId,itemTeks:it?it.teks:'',status,
+      guru:CU?.nama||'Guru',tarikh:new Date().toISOString()
+    });
+  }
+  saveLocal();
+  kbsRenderChecklist();
+  kbsFiltMurid();
+}
+
+/* ═══════════════════════════════════════
    ALERT
 ═══════════════════════════════════════ */
 function alertFilter(d,el){alertDays=d;document.querySelectorAll('.fchip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderAlert();}
@@ -3148,6 +3457,12 @@ function doExport(type){
   }else if(type==='laporan'){
     headers=['Darjah','Jml Murid','Sedang Iqra','Al-Quran','Sesi','Jml M/S','Khatam'];
     rows=DARJAH.map(d=>{const m=DB.murid.filter(x=>x.darjah===d&&x.status==='Aktif');const rs=DB.rekod.filter(r=>r.darjah===d&&new Date(r.tarikh).getFullYear()===tahun);return[d,m.length,m.filter(x=>x.peringkat!=='Al-Quran'&&x.peringkat!=='Khatam').length,m.filter(x=>x.peringkat==='Al-Quran'||x.peringkat==='Khatam').length,rs.length,rs.reduce((a,r)=>a+(r.jumlah||0),0),m.reduce((a,x)=>a+(x.bilKhatam||0),0)];});
+  }else if(type==='kbs'){
+    headers=['No','Tahun','Nama Murid','Darjah','Kelas','Tahap','Bahagian','Item','Status','Guru','Tarikh'];
+    let ks=(DB.kbs||[]).filter(r=>r.tahun===tahun);
+    if(darjah) ks=ks.filter(r=>r.darjah===darjah);
+    ks.sort((a,b)=>a.muridNama.localeCompare(b.muridNama));
+    rows=ks.map((r,i)=>[i+1,r.tahun,r.muridNama,r.darjah,r.kelas,'Tahap '+r.tahap,r.sectionKey,r.itemTeks,r.status,r.guru,fmtD(r.tarikh)]);
   }
 
   const bom='\uFEFF';
@@ -3345,6 +3660,7 @@ function prosesImportJSON(ev){
         if(data.DB.khatam) DB.khatam=data.DB.khatam;
         if(data.DB.guru) DB.guru=data.DB.guru;
         if(data.DB.kumpulan) DB.kumpulan=data.DB.kumpulan;
+        if(data.DB.kbs) DB.kbs=data.DB.kbs;
         saveLocal();
         seedGuruSKDK();
         renderMurid();renderGuru();renderDash();renderAlert();updateStatsTetapan();
@@ -3398,6 +3714,7 @@ function populateSels(){
 function openM(id){document.getElementById(id).classList.add('open');}
 function closeM(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.mo').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
+document.getElementById('kbsChecklistBody')?.addEventListener('click',kbsToggleClick);
 
 let toastId=0;
 function showT(msg,type='',dur=3000){
