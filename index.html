@@ -1481,14 +1481,20 @@ async function api(action, body={}){
   if(IS_OFFLINE || !API_URL){
     return handleOffline(action, body);
   }
+  // Had masa permintaan — tanpa ni, fetch() boleh "tergantung" (Syncing...)
+  // selama-lamanya kalau rangkaian perlahan/tersekat, tanpa sebarang mesej ralat.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(()=>controller.abort(), 25000);
   try{
     // Google Apps Script perlukan redirect manual — guna redirect:'follow'
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: {'Content-Type': 'text/plain'}, // GAS lebih stabil dengan text/plain
       body: JSON.stringify({action, ...body}),
-      redirect: 'follow'
+      redirect: 'follow',
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
 
     if(!res.ok){
       throw new Error('HTTP ' + res.status + ': ' + res.statusText);
@@ -1515,9 +1521,16 @@ async function api(action, body={}){
     return data;
 
   }catch(e){
-    console.warn('API error:', e.message);
+    clearTimeout(timeoutId);
+    const tamatMasa = e.name==='AbortError';
+    console.warn('API error:', tamatMasa?'Timeout (25s)':e.message);
     // Jangan terus offline — tunjuk error spesifik dulu
-    if(e.message.includes('CORS') || e.message.includes('Failed to fetch') || e.message.includes('NetworkError')){
+    if(tamatMasa){
+      IS_OFFLINE=true;
+      updateSyncStatus(false);
+      document.getElementById('syncBanner').classList.add('show');
+      showT('⚠️ Tamat masa menunggu respons server (>25 saat). Semak internet atau cuba lagi.','warn',6000);
+    } else if(e.message.includes('CORS') || e.message.includes('Failed to fetch') || e.message.includes('NetworkError')){
       IS_OFFLINE=true;
       updateSyncStatus(false);
       document.getElementById('syncBanner').classList.add('show');
