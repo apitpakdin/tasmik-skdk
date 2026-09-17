@@ -1528,7 +1528,7 @@ async function api(action, body={}){
     // Untuk operasi tulis, jangan pulangkan ok:true jika server gagal.
     // Biar pemanggil yang masukkan ke queue supaya mesej tidak tersalah kata
     // "dihantar ke Sheets" sedangkan data hanya tersimpan tempatan.
-    const writeActions = ['addMurid','addRekod','addKhatam','addGuru','editMurid','editGuru','changePass'];
+    const writeActions = ['addMurid','addRekod','addKhatam','addGuru','editMurid','editGuru','changePass','setKBS'];
     if(writeActions.includes(action)){
       return {ok:false, offline:true, msg:'Gagal sambung ke Google Sheets: '+e.message};
     }
@@ -1545,7 +1545,7 @@ function handleOffline(action, body){
     if(body.username===ADMIN_EMAIL) return{ok:true,user:{id:'G0001',nama:'Admin SKDK',email:ADMIN_EMAIL,peranan:'admin',darjah:'',kelas:''}};
     return{ok:false,msg:'Tidak dapat sambung ke server. Semak internet anda.'};
   }
-  if(action==='getAll') return{ok:true,data:{guru:DB.guru,murid:DB.murid,rekod:DB.rekod,khatam:DB.khatam,config:{namaSekolah:SKDK,alertDays:7}}};
+  if(action==='getAll') return{ok:true,data:{guru:DB.guru,murid:DB.murid,rekod:DB.rekod,khatam:DB.khatam,kbs:DB.kbs,config:{namaSekolah:SKDK,alertDays:7}}};
   if(action==='getDashboard') return buildLocalDashboard();
 
   // Write actions: queue for later sync
@@ -1555,6 +1555,13 @@ function handleOffline(action, body){
   if(action==='addKhatam'){DB.khatam.push({id,...body.khatam});localKhatamMurid(body.khatam);saveLocal();queueSync(action,body);return{ok:true,id,offline:true,queued:true};}
   if(action==='addGuru'){DB.guru.push({id,...body.guru,status:'Aktif'});saveLocal();queueSync(action,body);return{ok:true,id,offline:true,queued:true};}
   if(action==='editMurid'){const i=DB.murid.findIndex(m=>m.id===body.murid.id);if(i>=0){DB.murid[i]={...DB.murid[i],...body.murid};saveLocal();}queueSync(action,body);return{ok:true,offline:true,queued:true};}
+  if(action==='setKBS'){
+    const k=body.kbs;
+    const rec=(DB.kbs||[]).find(r=>r.muridId===k.muridId&&r.tahun===k.tahun&&r.itemId===k.itemId);
+    if(rec){Object.assign(rec,k);}else{DB.kbs.push({...k});}
+    saveLocal();queueSync(action,body);
+    return{ok:true,id:k.id,offline:true,queued:true};
+  }
   return{ok:false,msg:'Offline - tidak dapat proses: '+action};
 }
 
@@ -1764,6 +1771,11 @@ async function syncData(){
         DB.rekod=[...fresh.data.rekod,...lokalSahaja];
       }
       if(fresh.data.khatam) DB.khatam=fresh.data.khatam;
+      if(fresh.data.kbs){
+        const serverIds=new Set(fresh.data.kbs.map(r=>r.id));
+        const lokalSahaja=(DB.kbs||[]).filter(r=>!serverIds.has(r.id));
+        DB.kbs=[...fresh.data.kbs,...lokalSahaja];
+      }
       if(fresh.data.guru&&fresh.data.guru.length>0) DB.guru=fresh.data.guru;
       if(fresh.data.murid&&fresh.data.murid.length>0&&fresh.data.murid.length<=170){
         DB.murid=fresh.data.murid;
@@ -3032,8 +3044,14 @@ function kbsRenderChecklist(){
       const rec=DB.kbs.find(r=>r.muridId===KBS_CUR_MURID&&r.tahun===tahun&&r.itemId===it.id);
       const status=rec?rec.status:'';
       if(status==='M') doneAll++;
+      const jejak=(status&&rec&&rec.tarikh)
+        ? `<div style="font-size:10px;color:var(--gray4);margin-top:2px">🕐 ${fmtD(rec.tarikh)} ${fmtT(rec.tarikh)}${rec.guru?' · '+esc(rec.guru):''}</div>`
+        : '';
       html+=`<div class="kbs-row" data-item="${it.id}" data-sec="${sec.key}" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--gray1)">
-        <div style="flex:1;font-size:13px;color:var(--gray7)">${esc(it.teks)}${it.j?` <span class="bdg ${it.j==='Rukun'?'bb':'bpu'}" style="font-size:9px;padding:2px 6px">${it.j}</span>`:''}</div>
+        <div style="flex:1">
+          <div style="font-size:13px;color:var(--gray7)">${esc(it.teks)}${it.j?` <span class="bdg ${it.j==='Rukun'?'bb':'bpu'}" style="font-size:9px;padding:2px 6px">${it.j}</span>`:''}</div>
+          ${jejak}
+        </div>
         <div style="display:flex;gap:5px;flex-shrink:0">
           <button type="button" class="kbs-btn kbs-m${status==='M'?' on':''}" data-status="M">M</button>
           <button type="button" class="kbs-btn kbs-bm${status==='BM'?' on':''}" data-status="BM">BM</button>
@@ -3055,29 +3073,29 @@ function kbsToggleClick(e){
   kbsSetStatus(row.dataset.item,row.dataset.sec,btn.dataset.status);
 }
 
-function kbsSetStatus(itemId,sectionKey,status){
+async function kbsSetStatus(itemId,sectionKey,status){
   const m=DB.murid.find(x=>x.id===KBS_CUR_MURID);
   if(!m)return;
   const it=KBS_ITEM_MAP[itemId];
   const tahap=kbsTahap(m.darjah);
   const tahun=new Date().getFullYear();
-  const rec=DB.kbs.find(r=>r.muridId===KBS_CUR_MURID&&r.tahun===tahun&&r.itemId===itemId);
-  if(rec){
-    if(rec.status===status){
-      DB.kbs=DB.kbs.filter(r=>r!==rec);
-    }else{
-      rec.status=status;
-      rec.tarikh=new Date().toISOString();
-      rec.guru=CU?.nama||'Guru';
-    }
-  }else{
-    DB.kbs.push({
-      id:genId('KBS'),
-      muridId:KBS_CUR_MURID,muridNama:m.nama,darjah:m.darjah,kelas:m.kelas,
-      tahap,tahun,sectionKey,itemId,itemTeks:it?it.teks:'',status,
-      guru:CU?.nama||'Guru',tarikh:new Date().toISOString()
-    });
-  }
+  const existing=DB.kbs.find(r=>r.muridId===KBS_CUR_MURID&&r.tahun===tahun&&r.itemId===itemId);
+  const statusBaharu=(existing&&existing.status===status)?'':status; // tekan status sama = buang tanda
+
+  const kbsRec={
+    id:existing?existing.id:genId('KBS'),
+    muridId:KBS_CUR_MURID,muridNama:m.nama,darjah:m.darjah,kelas:m.kelas,
+    tahap,tahun,sectionKey,itemId,itemTeks:it?it.teks:'',
+    status:statusBaharu,guru:CU?.nama||'Guru',tarikh:new Date().toISOString()
+  };
+
+  const r=await api('setKBS',{kbs:kbsRec});
+  if(!r.ok){showT('❌ '+(r.msg||'Gagal simpan — cuba sekali lagi'),'err',4000);return;}
+
+  if(r.id) kbsRec.id=r.id;
+  if(existing) Object.assign(existing,kbsRec);
+  else DB.kbs.push(kbsRec);
+
   saveLocal();
   kbsRenderChecklist();
   kbsFiltMurid();
@@ -4246,6 +4264,7 @@ async function masukApps(){
   if(dr.ok && dr.data){
     if(dr.data.rekod) DB.rekod = dr.data.rekod;
     if(dr.data.khatam) DB.khatam = dr.data.khatam;
+    if(dr.data.kbs) DB.kbs = dr.data.kbs;
     if(dr.data.guru && dr.data.guru.length>0) DB.guru = dr.data.guru;
     if(dr.data.murid && dr.data.murid.length>0 && dr.data.murid.length<=170){
       DB.murid = dr.data.murid;
