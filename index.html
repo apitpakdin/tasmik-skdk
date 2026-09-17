@@ -3068,7 +3068,7 @@ function kbsRenderChecklist(){
   const sections=kbsGetSections(tahap);
   let totalAll=0,doneAll=0,html='';
   sections.forEach(sec=>{
-    html+=`<div style="font-size:12px;font-weight:700;color:var(--g1);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px;padding-bottom:4px;border-bottom:1.5px solid var(--gray2)">${sec.label}</div>`;
+    html+=`<div style="font-size:12px;font-weight:700;color:white;background:var(--g1);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px;padding:8px 12px;border-radius:var(--r-sm)">${sec.label}</div>`;
     sec.items.forEach(it=>{
       totalAll++;
       const rec=DB.kbs.find(r=>r.muridId===KBS_CUR_MURID&&r.tahun===tahun&&r.itemId===it.id);
