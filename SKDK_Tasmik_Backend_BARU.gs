@@ -1024,3 +1024,43 @@ function testDoPostTerus() {
     'Rekod baris: ' + sheet.getLastRow()
   );
 }
+
+// Ujian diagnostik KHUSUS setKBS — jalankan TERUS dalam editor (tak perlu deploy)
+// untuk pastikan kod dalam editor ni sendiri kenal action 'setKBS' atau tidak.
+function testSetKBSTerus() {
+  const fakeEvent = {
+    postData: {
+      contents: JSON.stringify({
+        action: 'setKBS',
+        kbs: {
+          muridId: 'TEST_M001',
+          muridNama: 'TEST MURID KBS',
+          darjah: 'Darjah 2',
+          kelas: 'Jauhari',
+          tahap: 1,
+          tahun: new Date().getFullYear(),
+          sectionKey: 'wuduk',
+          itemId: 'w1',
+          itemTeks: 'Bacaan basmalah',
+          status: 'M',
+          guru: 'Ujian Diagnostik',
+          tarikh: new Date().toISOString()
+        }
+      })
+    }
+  };
+
+  const result = doPost(fakeEvent);
+  const text = result.getContent();
+  Logger.log('testSetKBSTerus result: ' + text);
+
+  let bilBarisKBS = 'N/A (sheet KBS tidak dijumpai)';
+  try {
+    bilBarisKBS = _getSheet(SH.KBS).getLastRow();
+  } catch(e) {}
+
+  SpreadsheetApp.getUi().alert(
+    'doPost(setKBS) result: ' + text + '\n' +
+    'Baris dalam sheet KBS sekarang: ' + bilBarisKBS
+  );
+}
